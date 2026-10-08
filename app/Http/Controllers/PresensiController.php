@@ -18,9 +18,9 @@ public function index($id_pertemuan)
     $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
 
     if ((string)$pertemuan->status_pertemuan === '1') {
-        $waktuMulai = $pertemuan->updated_at ?? now();
+        $waktu_mulai = $pertemuan->updated_at ?? now();
 
-        if (now()->diffInSeconds($waktuMulai) >= 300) {
+        if (now()->diffInSeconds($waktu_mulai) >= 300) {
             $pertemuan->status_pertemuan = 0;
             $pertemuan->save();
         }
@@ -31,25 +31,25 @@ public function index($id_pertemuan)
     $matkul = MatkulModel::where('kode_matkul', $kelas->kode_matkul)->first();
     $jurusan = JurusanModel::where('kode_jurusan', $kelas->kode_jurusan)->first();
 
-    $mahasiswaKelas = DetailKelasModel::where('id_kelas', $kelas->id_kelas)
+    $mahasiswa = DetailKelasModel::where('id_kelas', $kelas->id_kelas)
         ->pluck('nim')
         ->toArray();
 
     PresensiModel::where('id_pertemuan', $id_pertemuan)
-        ->whereNotIn('nim', $mahasiswaKelas)
+        ->whereNotIn('nim', $mahasiswa)
         ->delete();
 
-    if (!empty($mahasiswaKelas)) {
-        $nimTerdaftar = PresensiModel::where('id_pertemuan', $id_pertemuan)
-            ->whereIn('nim', $mahasiswaKelas)
+    if (!empty($mahasiswa)) {
+        $nim_terdaftar = PresensiModel::where('id_pertemuan', $id_pertemuan)
+            ->whereIn('nim', $mahasiswa)
             ->pluck('nim')
             ->toArray();
 
-        $dataPresensiBaru = [];
+        $data_presensi_baru = [];
 
-        foreach ($mahasiswaKelas as $nim) {
-            if (!in_array($nim, $nimTerdaftar)) {
-                $dataPresensiBaru[] = [
+        foreach ($mahasiswa as $nim) {
+            if (!in_array($nim, $nim_terdaftar)) {
+                $data_presensi_baru[] = [
                     'id_pertemuan'     => $id_pertemuan,
                     'nim'              => $nim,
                     'status_kehadiran' => 'A',
@@ -57,21 +57,21 @@ public function index($id_pertemuan)
             }
         }
 
-        if (!empty($dataPresensiBaru)) {
-            PresensiModel::insert($dataPresensiBaru);
+        if (!empty($data_presensi_baru)) {
+            PresensiModel::insert($data_presensi_baru);
         }
     }
 
-    $dataPresensi = PresensiModel::with('mahasiswa')
+    $data_presensi = PresensiModel::with('mahasiswa')
         ->where('id_pertemuan', $id_pertemuan)
         ->orderBy('nim', 'asc')
         ->get();
 
     return view('admin.data_presensi.index', compact(
-        'pertemuan', 'kelas', 'dosen', 'matkul', 'jurusan', 'dataPresensi'
+        'pertemuan', 'kelas', 'dosen', 'matkul', 'jurusan', 'data_presensi'
     ));
 }
-    public function editStatus($id_pertemuan, $status)
+    public function edit_status($id_pertemuan, $status)
     {
         $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
         $pertemuan->status_pertemuan = $status;
@@ -85,7 +85,7 @@ public function index($id_pertemuan)
         return redirect()->back()->with('success', 'Status presensi berhasil diubah!');
     }
 
-    public function updateKehadiran(Request $request)
+    public function update_kehadiran(Request $request)
     {
         $request->validate([
             'id_presensi'      => 'required',
@@ -100,7 +100,7 @@ public function index($id_pertemuan)
         return redirect()->back()->with('success', 'Status kehadiran berhasil diperbarui!');
     }
 
-    public function tutupPresensi($id_pertemuan)
+    public function tutup_presensi($id_pertemuan)
     {
         $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
         $pertemuan->status_pertemuan = 0;
@@ -113,11 +113,11 @@ public function index($id_pertemuan)
     {
         $nim = auth()->user()->username;
 
-        $dataPresensi = PresensiModel::with(['pertemuan.kelas.matkul'])
+        $data_presensi = PresensiModel::with(['pertemuan.kelas.matkul'])
         ->where('nim', $nim)
         ->get();
 
-        return view('mahasiswa.data_presensi.index', compact('dataPresensi'));
+        return view('mahasiswa.data_presensi.index', compact('data_presensi'));
     }
 
     public function scanQr(Request $request)

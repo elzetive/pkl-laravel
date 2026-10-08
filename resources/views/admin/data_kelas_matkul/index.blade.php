@@ -9,10 +9,10 @@
                         <option value="">-- Pilih Tahun Akademik --</option>
                         @foreach ($akademik as $a)
                             @php
-                                $idGanjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']);
+                                $is_ganjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']);
                             @endphp
                             <option value="{{ $a->kode_akademik }}" {{ $pilih_akademik == $a->kode_akademik ? 'selected' : '' }}>
-                                {{ $a->tahun }} - {{ $idGanjil ? 'Ganjil' : 'Genap' }}
+                                {{ $a->tahun }} - {{ $is_ganjil ? 'Ganjil' : 'Genap' }}
                             </option>
                         @endforeach
                     </select>
@@ -64,12 +64,12 @@
                         <tbody>
                             @forelse ($kelas as $item)
                             @php
-                                $isGanjil = in_array(strtoupper($item->akademik->semester ?? ''), ['GL', '1', 'GANJIL']);
+                                $is_ganjil = in_array(strtoupper($item->akademik->semester ?? ''), ['GL', '1', 'GANJIL']);
                             @endphp
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $item->nama_kelas }}</td>
-                                <td>{{ $item->akademik ? $item->akademik->tahun . ' - ' . ($isGanjil ? 'Ganjil' : 'Genap') : $item->kode_akademik }}</td>
+                                <td>{{ $item->akademik ? $item->akademik->tahun . ' - ' . ($is_ganjil ? 'Ganjil' : 'Genap') : $item->kode_akademik }}</td>
                                 <td>{{ $item->matkul->nama_matkul ?? $item->kode_matkul }}</td>
                                 <td>{{ $item->jurusan->nama_jurusan ?? $item->kode_jurusan }}</td>
                                 <td>{{ $item->dosen->nama ?? $item->nik }}</td>
@@ -135,9 +135,9 @@
                         <select name="kode_akademik" id="tambah_kode_akademik" class="form-control" required>
                             <option value="">-- Pilih Akademik --</option>
                             @foreach ($akademik as $a)
-                                @php $isGanjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']); @endphp
+                                @php $is_ganjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']); @endphp
                                 <option value="{{ $a->kode_akademik }}" {{ $pilih_akademik == $a->kode_akademik ? 'selected' : '' }}>
-                                    {{ $a->tahun }} - {{ $isGanjil ? 'Ganjil' : 'Genap' }}
+                                    {{ $a->tahun }} - {{ $is_ganjil ? 'Ganjil' : 'Genap' }}
                                 </option>
                             @endforeach
                         </select>
@@ -204,8 +204,8 @@
                         <select name="kode_akademik" id="edit_kode_akademik" class="form-control" required>
                             <option value="">-- Pilih Akademik --</option>
                             @foreach ($akademik as $a)
-                                @php $isGanjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']); @endphp
-                                <option value="{{ $a->kode_akademik }}">{{ $a->tahun }} - {{ $isGanjil ? 'Ganjil' : 'Genap' }}</option>
+                                @php $is_ganjil = in_array(strtoupper($a->semester), ['GL', '1', 'GANJIL']); @endphp
+                                <option value="{{ $a->kode_akademik }}">{{ $a->tahun }} - {{ $is_ganjil ? 'Ganjil' : 'Genap' }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -301,8 +301,8 @@
 
             var modal = $(this);
 
-            var updateUrl = "{{ route('admin.data_kelas_matkul.update', ':id') }}".replace(':id', id);
-            modal.find('#form-edit').attr('action', updateUrl);
+            var update = "{{ route('admin.data_kelas_matkul.update', ':id') }}".replace(':id', id);
+            modal.find('#form-edit').attr('action', update);
 
             modal.find('#edit_id_kelas').val(id);
             modal.find('#edit_kode_akademik').val(kode_akademik).trigger('change');

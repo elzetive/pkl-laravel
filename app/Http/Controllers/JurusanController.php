@@ -59,12 +59,12 @@ class JurusanController extends Controller
         ]);
 
         $jurusan = JurusanModel::where('kode_jurusan', $kode_jurusan)->firstOrFail();
-        $updateJurusan = [
+        $update_jurusan = [
             'kode_jurusan'  => $validated['kode_jurusan'],
             'nama_jurusan'  => $validated['nama_jurusan'],
         ];
 
-        $jurusan->update($updateJurusan);
+        $jurusan->update($update_jurusan);
         return redirect()->route('admin.data_jurusan')->with('success', 'Data Jurusan berhasil diperbarui!');
     }
 

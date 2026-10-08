@@ -186,10 +186,10 @@
                                     <td>
                                         <button type="button"
                                                 class="btn btn-warning btn-sm text-white btn-edit"
-                                                data-id="{{ $item->id_presensi }}"
+                                                data-id_presensi="{{ $item->id_presensi }}"
                                                 data-nim="{{ $item->nim }}"
                                                 data-nama="{{ $item->mahasiswa->nama_mahasiswa ?? $item->mahasiswa->nama ?? '-' }}"
-                                                data-status="{{ $item->status_kehadiran }}">
+                                                data-status_kehadiran="{{ $item->status_kehadiran }}">
                                             <i class="fas fa-edit mr-1"></i> Edit
                                         </button>
                                     </td>
@@ -209,7 +209,6 @@
         </div>
     </div>
 
-{{-- Modal Edit Status Kehadiran --}}
 <div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -267,9 +266,9 @@
         const storage_key = 'timer_pertemuan_' + id_pertemuan;
 
         if (id_pertemuan) {
-            const peran = "{{ Auth::user()->peran === 'D' ? '/dosen' : '/admin' }}";
+            const peran_path = "{{ Auth::user()->peran === 'D' ? '/dosen' : '/admin' }}";
             setInterval(function() {
-                fetch(`${peran}/data_presensi/cek_presensi/${id_pertemuan}`)
+                fetch(`${peran_path}/data_presensi/cek_presensi/${id_pertemuan}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.jumlah_hadir !== jumlah_hadir) {
@@ -289,9 +288,9 @@
                 waktu_selesai = parseInt(simpan_timer);
             } else {
                 @php
-                    $updated_at = $pertemuan->updated_at ? $pertemuan->updated_at->timestamp * 1000 : time() * 1000;
+                    $updated_at_timestamp = $pertemuan->updated_at ? $pertemuan->updated_at->timestamp * 1000 : time() * 1000;
                 @endphp
-                const waktu_mulai = {{ $updated_at }};
+                const waktu_mulai = {{ $updated_at_timestamp }};
                 waktu_selesai = waktu_mulai + (durasi_detik * 1000);
                 localStorage.setItem(storage_key, waktu_selesai);
             }
@@ -325,10 +324,10 @@
         }
 
         $(document).on('click', '.btn-edit', function() {
-            const id_presensi = $(this).data('id');
+            const id_presensi = $(this).data('id_presensi');
             const nim = $(this).data('nim');
             const nama = $(this).data('nama');
-            const status_kehadiran = $(this).data('status');
+            const status_kehadiran = $(this).data('status_kehadiran');
 
             $('#edit_id_presensi').val(id_presensi);
             $('#edit_nim').val(nim);

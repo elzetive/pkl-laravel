@@ -15,8 +15,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class KelasController extends Controller
 {
-    public function index(Request $request)
+public function index(Request $request)
     {
+        $user = auth()->user();
         $akademik = AkademikModel::all();
         $pilih_akademik = $request->input('kode_akademik');
 
@@ -26,14 +27,31 @@ class KelasController extends Controller
 
         $kelas = collect();
         if ($pilih_akademik) {
-            $kelas = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])
-                ->where('kode_akademik', $pilih_akademik)
-                ->get();
+            $query = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])
+                ->where('kode_akademik', $pilih_akademik);
+
+            if ($user->peran === 'D') {
+                $nik_dosen = $user->nik ?? $user->username;
+                $query->where('nik', $nik_dosen);
+            }
+
+            $kelas = $query->get();
         }
 
         $matkul = MatkulModel::all();
         $jurusan = JurusanModel::all();
         $dosen = DosenModel::all();
+
+        if ($user->peran === 'D') {
+            return view('dosen.data_kelas_matkul.index', compact(
+                'akademik',
+                'pilih_akademik',
+                'kelas',
+                'matkul',  
+                'jurusan', 
+                'dosen'
+            ));
+        }
 
         return view('admin.data_kelas_matkul.index', compact(
             'akademik',
@@ -44,8 +62,7 @@ class KelasController extends Controller
             'dosen'
         ));
     }
-
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $validated = $request->validate([
             'kode_akademik' => 'required',

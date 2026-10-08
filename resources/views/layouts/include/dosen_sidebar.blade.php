@@ -13,6 +13,12 @@
         <p>Dashboard</p>
       </a>
     </li>
+    <li class="nav-item">
+    <a href="{{ route('dosen.data_kelas_matkul') }}" class="nav-link {{ request()->routeIs('dosen.data_kelas_matkul*', 'dosen.data_detail_kelas*', 'dosen.data_pertemuan*', 'dosen.data_presensi*') ? 'active' : '' }}">        <i class="nav-icon fas fa-chalkboard-teacher"></i>
+        <p>Kelas Mata Kuliah</p>
+    </a>
+    </li>
+
 
     <li class="nav-item">
       <a href="" class="nav-link">

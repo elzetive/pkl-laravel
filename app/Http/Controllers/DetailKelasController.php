@@ -16,10 +16,17 @@ class DetailKelasController extends Controller
 {
     public function index($id_kelas)
     {
+        $user = auth()->user();
+
         $kelas = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])->findOrFail($id_kelas);
         $detail_kelas = DetailKelasModel::with('mahasiswa')->where('id_kelas', $id_kelas)->get();
+
         $daftar_mahasiswa = $detail_kelas->pluck('nim')->toArray();
         $data_mahasiswa = MahasiswaModel::whereNotIn('nim', $daftar_mahasiswa)->orderBy('nim', 'asc')->get();
+
+        if ($user->peran === 'D') {
+            return view('dosen.data_detail_kelas.index', compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
+        }
 
         return view('admin.data_detail_kelas.index', compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
     }
@@ -35,7 +42,9 @@ class DetailKelasController extends Controller
             'nim'       => $request->nim,
         ]);
 
-        return redirect()->route('admin.data_detail_kelas', $id_kelas)
+        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+
+        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil ditambahkan!');
     }
 
@@ -47,7 +56,9 @@ class DetailKelasController extends Controller
 
         Excel::import(new KelasImport($id_kelas), $request->file('file_excel'));
 
-        return redirect()->route('admin.data_detail_kelas', $id_kelas)
+        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+
+        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil diimpor!');
     }
 
@@ -57,7 +68,9 @@ class DetailKelasController extends Controller
                 ->where('nim', $nim)
                 ->delete();
 
-        return redirect()->route('admin.data_detail_kelas', $id_kelas)
+        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+
+        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil dihapus!');
     }
 
@@ -77,5 +90,4 @@ class DetailKelasController extends Controller
 
         return $pdf->stream('Detail_kelas_' . str_replace(' ', '-', $kelas->nama_kelas) . '.pdf');
     }
-
 }

@@ -1,16 +1,16 @@
 <?php
 
+use App\Http\Controllers\AkademikController;
+use App\Http\Controllers\DetailKelasController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\MatkulController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AkademikController;
 use App\Http\Controllers\PenggunaController;
-use App\Http\Controllers\DetailKelasController;
 use App\Http\Controllers\PertemuanController;
 use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,19 +19,19 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', function() {
-    $peran = auth()->user()->peran;
+    Route::get('/dashboard', function () {
+        $peran = auth()->user()->peran;
 
-    if ($peran === 'A') {
-        return view('home_admin.index');
-    } elseif ($peran === 'D') {
-        return view('home_dosen.index');
-    } elseif ($peran === 'M') {
-        return view('home_mahasiswa.index');
-    }
+        if ($peran === 'A') {
+            return view('home_admin.index');
+        } elseif ($peran === 'D') {
+            return view('home_dosen.index');
+        } elseif ($peran === 'M') {
+            return view('home_mahasiswa.index');
+        }
 
-    return abort(403, 'Akses tidak diizinkan');
-})->name('dashboard');
+        return abort(403, 'Akses tidak diizinkan');
+    })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -40,10 +40,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['peran:A'])->prefix('admin')->as('admin.')->group(function () {
         Route::get('/data_akademik', [AkademikController::class, 'index'])->name('data_akademik');
         Route::post('/data_akademik', [AkademikController::class, 'store'])->name('data_akademik.store');
-        Route::post('/data_akademik/reset', [AkademikController::class, 'reset'])->name('data_akademik.reset');
         Route::put('/data_akademik/{kode_akademik}', [AkademikController::class, 'update'])->name('data_akademik.update');
         Route::delete('/data_akademik/{kode_akademik}', [AkademikController::class, 'destroy'])->name('data_akademik.destroy');
-        Route::get('/data_akademik/export',  [AkademikController::class, 'export'])->name('data_akademik.export');
+        Route::post('/data_akademik/reset', [AkademikController::class, 'reset'])->name('data_akademik.reset');
+        Route::get('/data_akademik/export', [AkademikController::class, 'export'])->name('data_akademik.export');
         Route::post('/data_akademik/import', [AkademikController::class, 'import'])->name('data_akademik.import');
         Route::get('/data_akademik/pdf', [AkademikController::class, 'pdf'])->name('data_akademik.pdf');
 
@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/data_matkul/import', [MatkulController::class, 'import'])->name('data_matkul.import');
         Route::get('/data_matkul/pdf', [MatkulController::class, 'pdf'])->name('data_matkul.pdf');
 
-        Route::get('/data_pengguna', [PenggunaController::class,'index'])->name('data_pengguna');
+        Route::get('/data_pengguna', [PenggunaController::class, 'index'])->name('data_pengguna');
         Route::post('/data_pengguna', [PenggunaController::class, 'store'])->name('data_pengguna.store');
         Route::put('/data_pengguna/{id}', [PenggunaController::class, 'update'])->name('data_pengguna.update');
         Route::delete('/data_pengguna/{id}', [PenggunaController::class, 'destroy'])->name('data_pengguna.destroy');
@@ -73,7 +73,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/data_dosen/export', [DosenController::class, 'export'])->name('data_dosen.export');
         Route::post('/data_dosen/import', [DosenController::class, 'import'])->name('data_dosen.import');
         Route::get('/data_dosen/pdf', [DosenController::class, 'pdf'])->name('data_dosen.pdf');
-
 
         Route::get('/data_mahasiswa', [MahasiswaController::class, 'index'])->name('data_mahasiswa');
         Route::post('/data_mahasiswa', [MahasiswaController::class, 'store'])->name('data_mahasiswa.store');
@@ -93,7 +92,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/data_jurusan/import', [JurusanController::class, 'import'])->name('data_jurusan.import');
         Route::get('/data_jurusan/pdf', [JurusanController::class, 'pdf'])->name('data_jurusan.pdf');
 
-
         Route::get('/data_kelas_matkul', [KelasController::class, 'index'])->name('data_kelas_matkul');
         Route::post('/data_kelas_matkul', [KelasController::class, 'store'])->name('data_kelas_matkul.store');
         Route::put('/data_kelas_matkul/{id_kelas}', [KelasController::class, 'update'])->name('data_kelas_matkul.update');
@@ -103,16 +101,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/data_kelas_matkul/import', [KelasController::class, 'import'])->name('data_kelas_matkul.import');
         Route::get('/data_kelas_matkul/pdf', [KelasController::class, 'pdf'])->name('data_kelas_matkul.pdf');
 
-
         Route::get('/data_detail_kelas/{id_kelas}', [DetailKelasController::class, 'index'])->name('data_detail_kelas');
-        Route::post('/data_detail_kelas/{id_kelas}/tambah',   [DetailKelasController::class, 'store'])->name('data_detail_kelas.store');
+        Route::post('/data_detail_kelas/{id_kelas}/tambah', [DetailKelasController::class, 'store'])->name('data_detail_kelas.store');
         Route::delete('/data_detail_kelas/{id_kelas}/hapus/{nim}', [DetailKelasController::class, 'destroy'])->name('data_detail_kelas.destroy');
         Route::post('/data_detail_kelas/{id_kelas}/import', [DetailKelasController::class, 'import'])->name('data_detail_kelas.import');
         Route::get('/data_detail_kelas/{id_kelas}/export', [DetailKelasController::class, 'export'])->name('data_detail_kelas.export');
         Route::get('/data_detail_kelas/{id_kelas}/pdf', [DetailKelasController::class, 'pdf'])->name('data_detail_kelas.pdf');
 
-        Route::get('/data_pertemuan/{id_kelas}', [PertemuanController::class, 'index'])
-            ->name('data_pertemuan');
+        Route::get('/data_pertemuan/{id_kelas}', [PertemuanController::class, 'index'])->name('data_pertemuan');
         Route::post('/data_pertemuan/{id_kelas}/tambah', [PertemuanController::class, 'store'])->name('data_pertemuan.store');
         Route::delete('/data_pertemuan/{id_kelas}/hapus/{id_pertemuan}', [PertemuanController::class, 'destroy'])->name('data_pertemuan.destroy');
 
@@ -121,16 +117,34 @@ Route::middleware('auth')->group(function () {
         Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'updateKehadiran'])->name('data_presensi.update_kehadiran');
         Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutupPresensi'])->name('data_presensi.tutup');
         Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cekPresensi'])->name('data_presensi.cek_presensi');
+    });
 
-        });
+    Route::middleware(['peran:D'])->prefix('dosen')->as('dosen.')->group(function () {
+        Route::get('/data_kelas_matkul', [KelasController::class, 'index'])->name('data_kelas_matkul');
 
-    Route::middleware(['peran:D'])->prefix('dosen')->as('dosen')->group(function () {
+        Route::get('/data_detail_kelas/{id_kelas}', [DetailKelasController::class, 'index'])->name('data_detail_kelas');
+        Route::post('/data_detail_kelas/{id_kelas}/tambah', [DetailKelasController::class, 'store'])->name('data_detail_kelas.store');
+        Route::delete('/data_detail_kelas/{id_kelas}/hapus/{nim}', [DetailKelasController::class, 'destroy'])->name('data_detail_kelas.destroy');
+        Route::post('/data_detail_kelas/{id_kelas}/import', [DetailKelasController::class, 'import'])->name('data_detail_kelas.import');
+
+        Route::get('/data_pertemuan/{id_kelas}', [PertemuanController::class, 'index'])->name('data_pertemuan');
+        Route::post('/data_pertemuan/{id_kelas}/tambah', [PertemuanController::class, 'store'])->name('data_pertemuan.store');
+        Route::put('/data_pertemuan/{id_kelas}/bobot', [PertemuanController::class, 'update_bobot'])->name('update_bobot');
+        Route::delete('/data_pertemuan/{id_kelas}/hapus/{id_pertemuan}', [PertemuanController::class, 'destroy'])->name('data_pertemuan.destroy');
+        Route::get('/data_pertemuan/{id_kelas}/pdf', [PertemuanController::class, 'pdf_pertemuan'])->name('data_pertemuan.pdf');
+
+        Route::get('/data_presensi/{id_kelas}/pdf', [PertemuanController::class, 'pdf_presensi'])->name('data_presensi.pdf');
+        Route::get('/data_presensi/{id_pertemuan}', [PresensiController::class, 'index'])->name('data_presensi');
+        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
+        Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'updateKehadiran'])->name('data_presensi.update_kehadiran');
+        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutupPresensi'])->name('data_presensi.tutup');
+        Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cekPresensi'])->name('data_presensi.cek_presensi');
     });
 
     Route::middleware(['peran:M'])->prefix('mahasiswa')->as('mahasiswa.')->group(function () {
         Route::get('/data_presensi', [PresensiController::class, 'mahasiswaIndex'])->name('data_presensi');
         Route::post('/data_presensi/proses', [PresensiController::class, 'scanQr'])->name('data_presensi.proses');
-        Route::post('data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
+        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
         Route::get('/data_presensi/cek-status/{id_pertemuan}', [PresensiController::class, 'cekStatus'])->name('data_presensi.cek_status');
     });
 
