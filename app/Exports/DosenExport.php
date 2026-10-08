@@ -49,9 +49,9 @@ class DosenExport implements FromCollection,  WithHeadings, WithMapping, ShouldA
 
     public function styles(Worksheet $sheet): array
     {
-        $hitungBaris = $sheet->getHighestDataRow();
-        $hitungKolom    = $sheet->getHighestColumn();
-        $rentang    = "A1:{$hitungKolom}{$hitungBaris}";
+        $hitung_baris = $sheet->getHighestDataRow();
+        $hitung_kolom    = $sheet->getHighestColumn();
+        $rentang    = "A1:{$hitung_kolom}{$hitung_baris}";
 
         return [
             1 => [

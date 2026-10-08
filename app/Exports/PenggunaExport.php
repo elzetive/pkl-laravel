@@ -32,13 +32,13 @@ class PenggunaExport implements FromCollection, WithHeadings, WithMapping, Shoul
         ];
     }
 
-    public function map($row): array
+    public function map($baris): array
     {
         return [
             $this->no++,
-            $row->username,
-            $row->nama,
-            $row->peran,
+            $baris->username,
+            $baris->nama,
+            $baris->peran,
         ];
     }
 
