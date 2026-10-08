@@ -158,12 +158,12 @@ public function index($id_pertemuan)
 
     public function cek_presensi($id_pertemuan)
     {
-        $jumlahHadir = PresensiModel::where('id_pertemuan', $id_pertemuan)
+        $jumlah_hadir = PresensiModel::where('id_pertemuan', $id_pertemuan)
             ->where('status_kehadiran', 'H')
             ->count();
 
         return response()->json([
-            'jumlah_hadir' =>(int)$jumlahHadir
+            'jumlah_hadir' =>(int)$jumlah_hadir
         ]);
     }
 }
