@@ -1,37 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.app')
 
-  <title>Admin Dashboard</title>
-  @include('layouts.include.css')
-</head>
-<body class="hold-transition sidebar-mini">
-<div class="wrapper">
-    @include('layouts.include.navbar')
-    @include('layouts.include.admin_sidebar')
+@section('title', 'Dashboard Admin')
 
-  <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-
-      </div>
+@section('content')
+<div class="content-header">
+    <div class="container-fluid">
+        <h1 class="m-0">Dashboard Admin</h1>
     </div>
-
-    <div class="content">
-      <div class="container-fluid">
-
-      </div>
-    </div>
-  </div>
-
-  <aside class="control-sidebar control-sidebar-dark">
-  </aside>
-
-  @include('layouts.include.footer')
 </div>
 
-@include('layouts.include.script')
-</body>
-</html>
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3>{{ $total_dosen }}</h3>
+                        <p>Total Dosen</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <a href="{{ route('admin.data_dosen') }}" class="small-box-footer">
+                        Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3>{{ $total_mahasiswa }}</h3>
+                        <p>Total Mahasiswa</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-user-graduate"></i></div>
+                    <a href="{{ route('admin.data_mahasiswa') }}" class="small-box-footer">
+                        Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-12">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3>{{ $total_kelas }}</h3>
+                        <p>Total Kelas</p>
+                    </div>
+                    <div class="icon"><i class="fas fa-school"></i></div>
+                    <a href="{{ route('admin.data_kelas_matkul') }}" class="small-box-footer">
+                        Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

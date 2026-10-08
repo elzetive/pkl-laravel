@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AkademikController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DetailKelasController;
 use App\Http\Controllers\DosenController;
 use App\Http\Controllers\JurusanController;
@@ -19,19 +20,7 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', function () {
-        $peran = auth()->user()->peran;
-
-        if ($peran === 'A') {
-            return view('home_admin.index');
-        } elseif ($peran === 'D') {
-            return view('home_dosen.index');
-        } elseif ($peran === 'M') {
-            return view('home_mahasiswa.index');
-        }
-
-        return abort(403, 'Akses tidak diizinkan');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -137,7 +126,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/data_presensi/{id_pertemuan}', [PresensiController::class, 'index'])->name('data_presensi');
         Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'edit_status'])->name('data_presensi.edit_status');
         Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'update_kehadiran'])->name('data_presensi.update_kehadiran');
-        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutup_kehadiran'])->name('data_presensi.tutup');
+        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutup_presensi'])->name('data_presensi.tutup');
         Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cek_presensi'])->name('data_presensi.cek_presensi');
     });
 
