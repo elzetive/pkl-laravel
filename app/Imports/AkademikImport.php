@@ -10,16 +10,16 @@ class AkademikImport implements ToModel, WithHeadingRow
 {
     public function model(array $baris): ?Model
     {
-        $kodeAkademik = $baris['kode_akademik'] ?? $baris['kode akademik'] ?? null;
+        $kode_akademik = $baris['kode_akademik'] ?? $baris['kode akademik'] ?? null;
         $tahun        = $baris['tahun'] ?? $baris['tahun_akademik'] ?? $baris['tahun akademik'] ?? null;
         $semester     = $baris['semester'] ?? null;
 
-        if (!$kodeAkademik) {
+        if (!$kode_akademik) {
             return null;
         }
 
         return AkademikModel::updateOrCreate(
-            ['kode_akademik' => $kodeAkademik],
+            ['kode_akademik' => $kode_akademik],
             [
                 'tahun'    => $tahun,
                 'semester' => $semester,
