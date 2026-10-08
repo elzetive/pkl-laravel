@@ -22,8 +22,8 @@ class MatkulController extends Controller
 
     public function store(Request $request)
     {
-        $cekKode = MatkulModel::where('kode_matkul', $request->kode_matkul)->exists();
-        if ($cekKode) {
+        $cek_kode = MatkulModel::where('kode_matkul', $request->kode_matkul)->exists();
+        if ($cek_kode) {
             return redirect()->back()->withInput()->with('error', 'Kode Matkul sudah digunakan!');
         }
 

@@ -42,9 +42,9 @@ class DetailKelasController extends Controller
             'nim'       => $request->nim,
         ]);
 
-        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
 
-        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
+        return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil ditambahkan!');
     }
 
@@ -56,9 +56,9 @@ class DetailKelasController extends Controller
 
         Excel::import(new KelasImport($id_kelas), $request->file('file_excel'));
 
-        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
 
-        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
+        return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil diimpor!');
     }
 
@@ -68,9 +68,9 @@ class DetailKelasController extends Controller
                 ->where('nim', $nim)
                 ->delete();
 
-        $routePrefix = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
 
-        return redirect()->route($routePrefix . 'data_detail_kelas', $id_kelas)
+        return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
                          ->with('success', 'Data mahasiswa berhasil dihapus!');
     }
 

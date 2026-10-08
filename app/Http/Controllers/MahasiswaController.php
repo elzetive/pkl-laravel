@@ -86,7 +86,7 @@ class MahasiswaController extends Controller
         ]);
 
         $mahasiswa = MahasiswaModel::where('nim', $nim)->firstOrFail();
-        $updateMahasiswa = [
+        $update_mahasiswa = [
             'nama'  => $validated['nama'],
             'kontak'    => $validated['kontak'],
             'email' => $validated['email'],
@@ -101,10 +101,10 @@ class MahasiswaController extends Controller
 
             $nama_file = 'foto-mahasiswa-' . round(microtime(true)) . '.' . $file->getClientOriginalExtension();
 
-            $updateMahasiswa['img'] = $nama_file;
+            $update_mahasiswa['img'] = $nama_file;
         }
 
-        $mahasiswa->update($updateMahasiswa);
+        $mahasiswa->update($update_mahasiswa);
 
         return redirect()->route('admin.data_mahasiswa')->with('success', 'Data Mahasiswa berhasil diperbarui!');
     }

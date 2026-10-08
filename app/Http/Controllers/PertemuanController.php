@@ -111,12 +111,12 @@ class PertemuanController extends Controller
             ->orderBy('pertemuan_ke', 'asc')
             ->get();
 
-        $list_id_pertemuan = $data_pertemuan->pluck('id_pertemuan');
+        $daftar_pertemuan = $data_pertemuan->pluck('id_pertemuan');
 
-        $rekap_presensi = $daftar_mahasiswa->map(function ($detail) use ($list_id_pertemuan) {
+        $rekap_presensi = $daftar_mahasiswa->map(function ($detail) use ($daftar_pertemuan) {
             $nim = $detail->nim;
 
-            $jumlah_hadir = PresensiModel::whereIn('id_pertemuan', $list_id_pertemuan)
+            $jumlah_hadir = PresensiModel::whereIn('id_pertemuan', $daftar_pertemuan)
                 ->where('nim', $nim)
                 ->whereIn('status_kehadiran', ['H', 'Hadir'])
                 ->count();

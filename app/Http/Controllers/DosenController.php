@@ -87,7 +87,7 @@ class DosenController extends Controller
 
         $dosen = DosenModel::where('nik', $nik)->firstOrFail();
 
-        $updateDosen = [
+        $update_dosen = [
             'nama' => $validated['nama'],
             'kontak' => $validated['kontak'],
             'email' => $validated['email'],
@@ -104,10 +104,10 @@ if ($request->hasFile('img')) {
         $nama_file = 'foto-dosen-' . round(microtime(true)) . '.' . $file->getClientOriginalExtension();
         $file->storeAs('dosen', $nama_file, 'public');
 
-        $updateDosen['img'] = $nama_file;
+        $update_dosen['img'] = $nama_file;
     }
 
-    $dosen->update($updateDosen);
+    $dosen->update($update_dosen);
 
     return redirect()->route('admin.data_dosen')->with('success', 'Data Dosen berhasil diperbarui!');
     }

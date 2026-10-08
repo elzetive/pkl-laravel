@@ -59,22 +59,22 @@ class PenggunaController extends Controller
 
         $pengguna = PenggunaModel::where('id', $id)->firstOrFail();
 
-        $updatePengguna =([
+        $update_pengguna =([
             'username' => $validated['username'],
             'peran'     => $validated['peran'],
             'nama'      => $validated['nama'],
         ]);
 
         if (!empty($validated['sandi'])) {
-            $updatePengguna['sandi'] = Hash::make($validated['sandi']);
-            $updatePengguna['password_changed_at'] = now();
+            $update_pengguna['sandi'] = Hash::make($validated['sandi']);
+            $update_pengguna['password_changed_at'] = now();
         }
 
         if (!empty($validated['pin'])) {
-            $updatePengguna['pin'] = $validated['pin'];
+            $update_pengguna['pin'] = $validated['pin'];
         }
 
-        $pengguna->update($updatePengguna);
+        $pengguna->update($update_pengguna);
 
         return redirect()->route('admin.data_pengguna')->with('success', 'Data Pengguna berhasil diperbarui!');
     }

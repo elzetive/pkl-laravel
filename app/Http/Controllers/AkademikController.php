@@ -22,8 +22,8 @@ class AkademikController extends Controller
 
     public function store(Request $request)
     {
-        $cekKode = AkademikModel::where('kode_akademik', $request->kode_akademik)->exists();
-        if ($cekKode) {
+        $cek_kode = AkademikModel::where('kode_akademik', $request->kode_akademik)->exists();
+        if ($cek_kode) {
             return redirect()->back()->withInput()->with('error', 'Kode Akademik sudah digunakan!');
         }
 
