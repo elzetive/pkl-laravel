@@ -45,7 +45,7 @@ class MatkulExport implements FromCollection, WithHeadings, WithMapping, ShouldA
 
     public function styles(Worksheet $sheet): array
     {
-        $hitungBaris = $sheet->getHighestDataRow();
+        $hitung_baris = $sheet->getHighestDataRow();
 
         return [
             1 => ['font' => ['bold' => true]],
@@ -59,7 +59,7 @@ class MatkulExport implements FromCollection, WithHeadings, WithMapping, ShouldA
                 ],
             ],
 
-            'A2:E' . $hitungBaris => [
+            'A2:E' . $hitung_baris => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,

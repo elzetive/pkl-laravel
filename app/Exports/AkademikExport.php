@@ -44,7 +44,7 @@ class AkademikExport implements FromCollection, WithHeadings,WithMapping, Should
 
     public function styles(Worksheet $sheet): array
     {
-        $hitungBaris = $sheet->getHighestDataRow();
+        $hitung_baris = $sheet->getHighestDataRow();
 
         return [
             'A1:E1' => [
@@ -56,7 +56,7 @@ class AkademikExport implements FromCollection, WithHeadings,WithMapping, Should
                 ],
             ],
 
-            'A2:E' . $hitungBaris => [
+            'A2:E' . $hitung_baris => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
