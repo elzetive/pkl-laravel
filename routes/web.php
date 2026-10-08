@@ -113,10 +113,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/data_pertemuan/{id_kelas}/hapus/{id_pertemuan}', [PertemuanController::class, 'destroy'])->name('data_pertemuan.destroy');
 
         Route::get('/data_presensi/{id_pertemuan}', [PresensiController::class, 'index'])->name('data_presensi');
-        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
-        Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'updateKehadiran'])->name('data_presensi.update_kehadiran');
-        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutupPresensi'])->name('data_presensi.tutup');
-        Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cekPresensi'])->name('data_presensi.cek_presensi');
+        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'edit_status'])->name('data_presensi.edit_status');
+        Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'update_kehadiran'])->name('data_presensi.update_kehadiran');
+        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutup_presensi'])->name('data_presensi.tutup');
+        Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cek_presensi'])->name('data_presensi.cek_presensi');
     });
 
     Route::middleware(['peran:D'])->prefix('dosen')->as('dosen.')->group(function () {
@@ -135,17 +135,17 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/data_presensi/{id_kelas}/pdf', [PertemuanController::class, 'pdf_presensi'])->name('data_presensi.pdf');
         Route::get('/data_presensi/{id_pertemuan}', [PresensiController::class, 'index'])->name('data_presensi');
-        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
-        Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'updateKehadiran'])->name('data_presensi.update_kehadiran');
-        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutupPresensi'])->name('data_presensi.tutup');
-        Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cekPresensi'])->name('data_presensi.cek_presensi');
+        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'edit_status'])->name('data_presensi.edit_status');
+        Route::post('/data_presensi/update-kehadiran', [PresensiController::class, 'update_kehadiran'])->name('data_presensi.update_kehadiran');
+        Route::post('/data_presensi/{id_pertemuan}/tutup', [PresensiController::class, 'tutup_kehadiran'])->name('data_presensi.tutup');
+        Route::get('/data_presensi/cek_presensi/{id_pertemuan}', [PresensiController::class, 'cek_presensi'])->name('data_presensi.cek_presensi');
     });
 
     Route::middleware(['peran:M'])->prefix('mahasiswa')->as('mahasiswa.')->group(function () {
-        Route::get('/data_presensi', [PresensiController::class, 'mahasiswaIndex'])->name('data_presensi');
-        Route::post('/data_presensi/proses', [PresensiController::class, 'scanQr'])->name('data_presensi.proses');
-        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'editStatus'])->name('data_presensi.edit_status');
-        Route::get('/data_presensi/cek-status/{id_pertemuan}', [PresensiController::class, 'cekStatus'])->name('data_presensi.cek_status');
+        Route::get('/data_presensi', [PresensiController::class, 'mahasiswa_index'])->name('data_presensi');
+        Route::post('/data_presensi/proses', [PresensiController::class, 'scan_qr'])->name('data_presensi.proses');
+        Route::post('/data_presensi/status/{id_pertemuan}/{status}', [PresensiController::class, 'edit_status'])->name('data_presensi.edit_status');
+        Route::get('/data_presensi/cek-status/{id_pertemuan}', [PresensiController::class, 'cek_status'])->name('data_presensi.cek_status');
     });
 
 });

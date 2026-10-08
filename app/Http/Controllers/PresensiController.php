@@ -109,7 +109,7 @@ public function index($id_pertemuan)
         return redirect()->back()->with('success', 'Presensi berhasil ditutup.');
     }
 
-    public function mahasiswaIndex()
+    public function mahasiswa_index()
     {
         $nim = auth()->user()->username;
 
@@ -120,7 +120,7 @@ public function index($id_pertemuan)
         return view('mahasiswa.data_presensi.index', compact('data_presensi'));
     }
 
-    public function scanQr(Request $request)
+    public function scan_qr(Request $request)
     {
         $id_pertemuan = $request->input('id_pertemuan');
         $nim    = auth()->user()->username;
@@ -147,7 +147,7 @@ public function index($id_pertemuan)
         return redirect()->back()->with('success', 'Anda berhasil melakukan presensi!');
     }
 
-    public function cekStatus($id_pertemuan)
+    public function cek_status($id_pertemuan)
     {
         $pertemuan = PertemuanModel::where('id_pertemuan', $id_pertemuan)->first();
 
@@ -156,7 +156,7 @@ public function index($id_pertemuan)
         ]);
     }
 
-    public function cekPresensi($id_pertemuan)
+    public function cek_presensi($id_pertemuan)
     {
         $jumlahHadir = PresensiModel::where('id_pertemuan', $id_pertemuan)
             ->where('status_kehadiran', 'H')
