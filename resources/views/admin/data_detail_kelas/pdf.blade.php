@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Detail Kelas - {{ $kelas->nama_kelas }}</title>
+    <title>Detail Kelas - {{ $kelas?->nama_kelas }}</title>
     @include('layouts.include.pdf')
     <style>
         .info-table {
@@ -28,7 +28,9 @@
     <table class="header-table" style="width: 100%;">
         <tr>
             <td style="width: 15%; text-align: right; vertical-align: middle; padding-right: 10px;">
-                <img src="{{ public_path('storage/dosen/foto-dosen-1790320295.jpg') }}" class="logo" style="display: inline-block;" alt="Logo">            
+                @if(file_exists(public_path('storage/dosen/foto-dosen-1790320295.jpg')))
+                    <img src="{{ public_path('storage/dosen/foto-dosen-1790320295.jpg') }}" class="logo" style="display: inline-block;" alt="Logo">
+                @endif
             </td>
             <td style="width: 70%; text-align: center;" class="header-text">
                 <h2>Jurusan Komputer dan Informatika</h2>
@@ -48,37 +50,37 @@
     </div>
 
     @php
-        $semester = $kelas->akademik->semester ?? '';
-        $isGanjil = in_array(strtoupper($semester), ['GL', '1', 'GANJIL']);
+        $semester = $kelas?->akademik?->semester ?? '';
+        $is_ganjil = in_array(strtoupper($semester), ['GL', '1', 'GANJIL']);
     @endphp
 
     <table class="info-table">
         <tr>
             <td class="info-label">Nama Kelas</td>
             <td class="info-colon">:</td>
-            <td><strong>{{ $kelas->nama_kelas }}</strong></td>
+            <td><strong>{{ $kelas?->nama_kelas }}</strong></td>
             <td class="info-label">Mata Kuliah</td>
             <td class="info-colon">:</td>
-            <td>{{ $kelas->matkul->nama_matkul ?? $kelas->kode_matkul }}</td>
+            <td>{{ $kelas?->matkul?->nama_matkul ?? $kelas?->kode_matkul }}</td>
         </tr>
         <tr>
             <td class="info-label">Tahun Akademik</td>
             <td class="info-colon">:</td>
             <td>
-                @if ($kelas->akademik)
-                    {{ $kelas->akademik->tahun }} - {{ $isGanjil ? 'Ganjil' : 'Genap' }}
+                @if ($kelas?->akademik)
+                    {{ $kelas?->akademik?->tahun }} - {{ $is_ganjil ? 'Ganjil' : 'Genap' }}
                 @else
-                    {{ $kelas->kode_akademik }}
+                    {{ $kelas?->kode_akademik }}
                 @endif
             </td>
             <td class="info-label">Jurusan</td>
             <td class="info-colon">:</td>
-            <td>{{ $kelas->jurusan->nama_jurusan ?? $kelas->kode_jurusan }}</td>
+            <td>{{ $kelas?->jurusan?->nama_jurusan ?? $kelas?->kode_jurusan }}</td>
         </tr>
         <tr>
             <td class="info-label">Dosen Pengampu</td>
             <td class="info-colon">:</td>
-            <td colspan="4">{{ $kelas->dosen->nama ?? $kelas->nik }}</td>
+            <td colspan="4">{{ $kelas?->dosen?->nama ?? $kelas?->nik }}</td>
         </tr>
     </table>
 
@@ -92,15 +94,15 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($kelas->detail_kelas as $index => $detail)
+            @forelse ($kelas?->detail_kelas ?? [] as $index => $detail)
                 <tr>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td style="text-align: center;">{{ $detail->mahasiswa->nim ?? $detail->nim }}</td>
-                    <td>{{ $detail->mahasiswa->nama ?? '-' }}</td>
+                    <td style="text-align: center;">{{ $detail?->mahasiswa?->nim ?? $detail?->nim }}</td>
+                    <td>{{ $detail?->mahasiswa?->nama ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" style="text-align: center;">Belum ada mahasiswa yang terdaftar di kelas ini.</td>
+                    <td colspan="3" style="text-align: center;">Belum ada mahasiswa yang terdaftar di kelas ini.</td>
                 </tr>
             @endforelse
         </tbody>

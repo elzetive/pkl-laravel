@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\KelasImport;
 use App\Exports\KelasExport;
-use Illuminate\Http\Request;
-use App\Models\KelasModel;
+use App\Imports\KelasImport;
 use App\Models\DetailKelasModel;
+use App\Models\KelasModel;
 use App\Models\MahasiswaModel;
-use App\Imports\DetailImport;
-use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DetailKelasController extends Controller
 {
     public function index($id_kelas)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $kelas = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])->findOrFail($id_kelas);
         $detail_kelas = DetailKelasModel::with('mahasiswa')->where('id_kelas', $id_kelas)->get();
@@ -24,28 +24,26 @@ class DetailKelasController extends Controller
         $daftar_mahasiswa = $detail_kelas->pluck('nim')->toArray();
         $data_mahasiswa = MahasiswaModel::whereNotIn('nim', $daftar_mahasiswa)->orderBy('nim', 'asc')->get();
 
-        if ($user->peran === 'D') {
-            return view('dosen.data_detail_kelas.index', compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
-        }
+        $peran = $user->peran === 'D' ? 'dosen.data_detail_kelas.index' : 'admin.data_detail_kelas.index';
 
-        return view('admin.data_detail_kelas.index', compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
+        return view($peran, compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
     }
 
     public function store(Request $request, $id_kelas)
     {
         $request->validate([
-            'nim'   => 'required|exists:tbl_mahasiswa,nim',
+            'nim' => 'required|exists:tbl_mahasiswa,nim',
         ]);
 
         DetailKelasModel::create([
-            'id_kelas'  => $id_kelas,
-            'nim'       => $request->nim,
+            'id_kelas' => $id_kelas,
+            'nim'      => $request->nim,
         ]);
 
-        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = Auth::user()->peran === 'D' ? 'dosen.' : 'admin.';
 
         return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
-                         ->with('success', 'Data mahasiswa berhasil ditambahkan!');
+            ->with('success', 'Data mahasiswa berhasil ditambahkan!');
     }
 
     public function import(Request $request, $id_kelas)
@@ -56,22 +54,22 @@ class DetailKelasController extends Controller
 
         Excel::import(new KelasImport($id_kelas), $request->file('file_excel'));
 
-        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = Auth::user()->peran === 'D' ? 'dosen.' : 'admin.';
 
         return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
-                         ->with('success', 'Data mahasiswa berhasil diimpor!');
+            ->with('success', 'Data mahasiswa berhasil diimpor!');
     }
 
     public function destroy($id_kelas, $nim)
     {
         DetailKelasModel::where('id_kelas', $id_kelas)
-                ->where('nim', $nim)
-                ->delete();
+            ->where('nim', $nim)
+            ->delete();
 
-        $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+        $peran = Auth::user()->peran === 'D' ? 'dosen.' : 'admin.';
 
         return redirect()->route($peran . 'data_detail_kelas', $id_kelas)
-                         ->with('success', 'Data mahasiswa berhasil dihapus!');
+            ->with('success', 'Data mahasiswa berhasil dihapus!');
     }
 
     public function export($id_kelas)
@@ -86,8 +84,10 @@ class DetailKelasController extends Controller
     {
         $kelas = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen', 'detail_kelas.mahasiswa'])->findOrFail($id_kelas);
 
-        $pdf = Pdf::loadView('admin.data_detail_kelas.pdf', compact('kelas'))->setPaper('a4', 'portrait');
+        $peran = Auth::user()->peran === 'D' ? 'dosen.data_detail_kelas.pdf' : 'admin.data_detail_kelas.pdf';
 
-        return $pdf->stream('Detail_kelas_' . str_replace(' ', '-', $kelas->nama_kelas) . '.pdf');
+        $pdf = Pdf::loadView($peran, compact('kelas'))->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Detail_kelas_' . str_replace(' ', '_', $kelas->nama_kelas) . '.pdf');
     }
 }

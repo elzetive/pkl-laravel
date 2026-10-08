@@ -23,20 +23,20 @@
                             <tr>
                                 <td><strong>Nama Kelas</strong></td>
                                 <td class="px-2">=</td>
-                                <td>{{ $kelas->nama_kelas }}</td>
+                                <td>{{ $kelas?->nama_kelas }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Tahun / Semester</strong></td>
                                 <td class="px-2">=</td>
                                 <td>
-                                    {{ $kelas->akademik->tahun ?? '-' }} /
-                                    {{ in_array(strtoupper($kelas->akademik->semester ?? ''), ['GL', '1']) ? 'Ganjil' : 'Genap' }}
+                                    {{ $kelas?->akademik?->tahun ?? '-' }} /
+                                    {{ in_array(strtoupper($kelas?->akademik?->semester ?? ''), ['GL', '1']) ? 'Ganjil' : 'Genap' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Mata Kuliah</strong></td>
                                 <td class="px-2">=</td>
-                                <td>{{ $kelas->matkul->nama_matkul ?? $kelas->kode_matkul }}</td>
+                                <td>{{ $kelas?->matkul?->nama_matkul ?? $kelas?->kode_matkul }}</td>
                             </tr>
                         </table>
                     </div>
@@ -45,12 +45,12 @@
                             <tr>
                                 <td><strong>Jurusan</strong></td>
                                 <td class="px-2">=</td>
-                                <td>{{ $kelas->jurusan->nama_jurusan ?? $kelas->kode_jurusan }}</td>
+                                <td>{{ $kelas?->jurusan?->nama_jurusan ?? $kelas?->kode_jurusan }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Dosen Pengampu</strong></td>
                                 <td class="px-2">=</td>
-                                <td>{{ $kelas->dosen->nama ?? $kelas->nik }}</td>
+                                <td>{{ $kelas?->dosen?->nama ?? $kelas?->nik }}</td>
                             </tr>
                         </table>
                     </div>
@@ -58,12 +58,14 @@
             </div>
         </div>
 
-        <!-- Tabel Detail Mahasiswa -->
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title"><strong>Data Detail Kelas</strong></h3>
             </div>
             <div class="card-body">
+                @php
+                    $peran = auth()->user()->peran === 'D' ? 'dosen.' : 'admin.';
+                @endphp
                 <div align="right">
                     <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#modal-tambah">
                         <i class="fas fa-plus"></i> Tambah Data
@@ -71,12 +73,12 @@
                     <button type="button" class="btn btn-success mb-2" data-toggle="modal" data-target="#modal-import">
                         <i class="fas fa-file-excel"></i> Import Data
                     </button>
-                    <a href="{{ route('admin.data_detail_kelas.export', $kelas->id_kelas) }}" class="btn btn-info mb-2">
+                    <a href="{{ route($peran . 'data_detail_kelas.export', $kelas->id_kelas) }}" class="btn btn-info mb-2">
                         <i class="fas fa-file-download"></i> Export Excel
                     </a>
-                    <a href="{{ route('admin.data_detail_kelas.pdf', $kelas->id_kelas) }}" 
-                    target="_blank" 
-                    class="btn btn-danger mb-2">
+                    <a href="{{ route($peran . 'data_detail_kelas.pdf', $kelas->id_kelas) }}" 
+                       target="_blank" 
+                       class="btn btn-danger mb-2">
                         <i class="fas fa-file-pdf me-1"></i> Cetak PDF
                     </a>                    
                 </div>
@@ -94,9 +96,9 @@
                             <tr>
                                 <td align="center">{{ $loop->iteration }}</td>
                                 <td>{{ $item->nim }}</td>
-                                <td>{{ $item->mahasiswa->nama ?? '-' }}</td>
+                                <td>{{ $item->mahasiswa?->nama ?? '-' }}</td>
                                 <td align="center">
-                                    <form action="{{ route('admin.data_detail_kelas.destroy', ['id_kelas' => $kelas->id_kelas, 'nim' => $item->nim]) }}" method="POST" onsubmit="return confirm('Yakin Hapus Data Ini?')">
+                                    <form action="{{ route($peran . 'data_detail_kelas.destroy', ['id_kelas' => $kelas->id_kelas, 'nim' => $item->nim]) }}" method="POST" onsubmit="return confirm('Yakin Hapus Data Ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm">
@@ -126,7 +128,7 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <form action="{{ route('admin.data_detail_kelas.store', $kelas->id_kelas) }}" method="POST">
+      <form action="{{ route($peran . 'data_detail_kelas.store', $kelas->id_kelas) }}" method="POST">
         @csrf
         <div class="modal-body">
           <div class="form-group">
@@ -157,7 +159,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('admin.data_detail_kelas.import', $kelas->id_kelas) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route($peran . 'data_detail_kelas.import', $kelas->id_kelas) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
