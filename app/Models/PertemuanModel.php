@@ -25,6 +25,7 @@ class PertemuanModel extends Model
 
     protected $casts = [
         'tanggal'   => 'date',
+        'updated_at' => 'datetime',
     ];
 
     public function kelas()

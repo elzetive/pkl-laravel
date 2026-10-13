@@ -154,53 +154,18 @@
                 <div class="card-header bg-white py-3">
                     <h3 class="card-title font-weight-bold mb-0"><strong>Data Detail Kelas</strong></h3>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped mb-0 text-center align-middle" id="table-presensi">
+                <div class="card-body">
+                    <div class="table-responsive p-0">
+                        <table class="table table-bordered table-striped mb-3 text-center align-middle" id="tabel-presensi" style="100%;">
                             <thead>
                                 <tr>
                                     <th style="width: 70px">No</th>
                                     <th>Mahasiswa</th>
-                                    <th style="width: 180px">Status</th>
+                                    <th style="width: 200px">Status</th>
                                     <th style="width: 150px">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($data_presensi as $index =>$item)
-                                <tr>
-                                    <td class="align-middle">{{ $loop->iteration }}</td>
-                                    <td class="text-left">{{ $item->nim }} - {{ $item->mahasiswa->nama_mahasiswa ?? $item->mahasiswa->nama ?? '-' }}</td>
-                                    <td>
-                                        @if (in_array($item->status_kehadiran, ['H', 'Hadir']))
-                                            <span class="badge badge-success px-2 py-1">Hadir</span>
-                                        @elseif (in_array($item->status_kehadiran, ['I', 'Izin']))
-                                            <span class="badge badge-info px-2 py-1">Izin</span>
-                                        @elseif (in_array($item->status_kehadiran, ['S', 'Sakit']))
-                                            <span class="badge badge-warning px-2 py-1">Sakit</span>
-                                        @elseif (in_array($item->status_kehadiran, ['D', 'Dispensasi']))
-                                            <span class="badge badge-primary px-2 py-1">Dispensasi</span>
-                                        @else
-                                            <span class="badge badge-danger px-2 py-1">Alpa</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <button type="button"
-                                                class="btn btn-warning btn-sm text-white btn-edit"
-                                                data-id="{{ $item->id_presensi }}"
-                                                data-nim="{{ $item->nim }}"
-                                                data-nama="{{ $item->mahasiswa->nama_mahasiswa ?? $item->mahasiswa->nama ?? '-' }}"
-                                                data-status="{{ $item->status_kehadiran }}">
-                                            <i class="fas fa-edit mr-1"></i> Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="4" class="text-center py-3 text-muted">
-                                        Tidak ada mahasiswa yang terdaftar.
-                                    </td>
-                                </tr>
-                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -209,7 +174,6 @@
         </div>
     </div>
 
-{{-- Modal Edit Status Kehadiran --}}
 <div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -261,22 +225,35 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        let jumlah_hadir = {{ $data_presensi->whereIn('status_kehadiran', ['H', 'Hadir'])->count() }};
+        let jumlah_hadir = {{ $data_presensi->whereIn('status_kehadiran', ['H'])->count() }};
         const id_pertemuan = "{{ $pertemuan->id_pertemuan }}";
-        const status_pertemuan = parseInt("{{ $pertemuan->status_pertemuan }}");
+        const status_pertemuan = parseInt(" {{ $pertemuan->status_pertemuan }}");
         const storage_key = 'timer_pertemuan_' + id_pertemuan;
+
+        $('#tabel-presensi').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: "{{ route(Auth::user()->peran === 'D' ? 'dosen.data_presensi' : 'admin.data_presensi', $pertemuan->id_pertemuan) }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle'},
+                { data: 'mahasiswa', name: 'nim', className: 'text-left align-middle'},
+                { data: 'status', name: 'status_kehadiran', className: 'text-center align-middle'},
+                { data: 'aksi', name: 'aksi', orderable: false, searchable:false, className: 'text-center align-middle'}
+            ]
+        });
 
         if (id_pertemuan) {
             const peran = "{{ Auth::user()->peran === 'D' ? '/dosen' : '/admin' }}";
             setInterval(function() {
                 fetch(`${peran}/data_presensi/cek_presensi/${id_pertemuan}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.jumlah_hadir !== jumlah_hadir) {
-                            window.location.reload();
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.jumlah_hadir !== jumlah_hadir) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             }, 3000);
         }
 
@@ -291,6 +268,7 @@
                 @php
                     $updated_at = $pertemuan->updated_at ? $pertemuan->updated_at->timestamp * 1000 : time() * 1000;
                 @endphp
+
                 const waktu_mulai = {{ $updated_at }};
                 waktu_selesai = waktu_mulai + (durasi_detik * 1000);
                 localStorage.setItem(storage_key, waktu_selesai);
@@ -301,15 +279,16 @@
                 const selisih = waktu_selesai - sekarang;
 
                 if (selisih <= 0) {
-                    clearInterval(timer_interval);
-                    $('#countdown-timer').text('00:00');
-                    localStorage.removeItem(storage_key);
+                 clearInterval(timer_interval);
+                 $('#countdown-timer').text('00:00');
+                 localStorage.removeItem(storage_key);
 
-                    const form_tutup = document.getElementById('form-tutup-presensi');
-                    if (form_tutup) {
-                        form_tutup.submit();
-                    }
-                    return;
+                 const form_tutup = document.getElementById('form-tutup-presensi');
+
+                 if (form_tutup) {
+                  form_tutup.submit();
+                 }
+                 return;
                 }
 
                 let menit = Math.floor(selisih / (1000 * 60));
@@ -321,7 +300,7 @@
                 $('#countdown-timer').text(menit + ':' + detik);
             }, 1000);
         } else {
-            localStorage.removeItem(storage_key);
+         localStorage.removeItem(storage_key);
         }
 
         $(document).on('click', '.btn-edit', function() {
@@ -332,7 +311,7 @@
 
             $('#edit_id_presensi').val(id_presensi);
             $('#edit_nim').val(nim);
-            $('#edit_mahasiswa').val(nim + ' - ' + nama);
+            $('#edit_mahasiswa').val(nim + '-' + nama);
             $('#edit_status_kehadiran').val(status_kehadiran);
             $('#modal-edit').modal('show');
         });

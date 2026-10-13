@@ -8,16 +8,39 @@ use Illuminate\Http\Request;
 use App\Exports\MatkulExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\Facades\DataTables;
 
 class MatkulController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $matkul = MatkulModel::orderBy('kode_matkul', 'desc')
-            ->orderBy('nama_matkul', 'asc')
-            ->get();
+        if ($request->ajax()) {
+            $data = MatkulModel::orderBy('kode_matkul', 'asc')
+                ->orderBy('nama_matkul', 'asc');
 
-        return view('admin.data_matkul.index', compact('matkul'));
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('aksi', function($baris) {
+                    $btn = '<div class="btn-group" role="group">';
+                    $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                        data-kode ="' . $baris->kode_matkul .'"
+                        data-nama ="' . $baris->nama_matkul .'"
+                        data-jumlah_sks = "' . $baris->jumlah_sks .'"
+                        data-jml_cpmk = "' . $baris->jml_cpmk .'">
+                        <i class= "fas fa-edit"></i> Edit
+                        </button>';
+                    $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                        data-kode= "' . $baris->kode_matkul .'">
+                        <i class="fas fa-trash"></i> Hapus
+                        </button>';
+                    $btn .= '</div>';
+
+                    return $btn;
+                })
+                ->rawColumns(['aksi'])
+                ->make(true);
+        }
+        return view('admin.data_matkul.index');
     }
 
     public function store(Request $request)

@@ -49,7 +49,7 @@
                         </a>
 
                     </div>
-                    <table class="table table-bordered table-striped">
+                    <table class="table table-bordered table-striped" id="tabel-kelas-matkul" style="width: 100%">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
@@ -62,51 +62,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($kelas as $item)
-                            @php
-                                $is_ganjil = in_array(strtoupper($item->akademik->semester ?? ''), ['GL', '1', 'GANJIL']);
-                            @endphp
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $item->nama_kelas }}</td>
-                                <td>{{ $item->akademik ? $item->akademik->tahun . ' - ' . ($is_ganjil ? 'Ganjil' : 'Genap') : $item->kode_akademik }}</td>
-                                <td>{{ $item->matkul->nama_matkul ?? $item->kode_matkul }}</td>
-                                <td>{{ $item->jurusan->nama_jurusan ?? $item->kode_jurusan }}</td>
-                                <td>{{ $item->dosen->nama ?? $item->nik }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-edit"
-                                        data-id="{{ $item->id_kelas }}"
-                                        data-kode-akademik="{{ $item->kode_akademik }}"
-                                        data-kode-matkul="{{ $item->kode_matkul }}"
-                                        data-kode-jurusan="{{ $item->kode_jurusan }}"
-                                        data-nik="{{ $item->nik }}"
-                                        data-nama-kelas="{{ $item->nama_kelas }}">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-
-                                    <form action="{{ route('admin.data_kelas_matkul.destroy', $item->id_kelas) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus kelas ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="filter_akademik" value="{{ $pilih_akademik }}">
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
-
-                                    <a href="{{ route('admin.data_detail_kelas', $item->id_kelas) }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-list"></i> Detail
-                                    </a>
-
-                                    <a href="{{ route('admin.data_pertemuan', $item->id_kelas) }}" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-calendar-alt"></i> Pertemuan
-                                    </a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center">Data kelas belum tersedia.</td>
-                            </tr>
-                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -289,15 +244,38 @@
     @endif
 
     $(document).ready(function () {
+        @if($pilih_akademik)
+        var table = $('#tabel-kelas-matkul').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: {
+                url : "{{ route('admin.data_kelas_matkul') }}",
+                data: function (d) {
+                    d.kode_akademik = "{{ $pilih_akademik }}";
+                }
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable:false, searchable:false, className: 'text-center align-middle'},
+                { data: 'nama_kelas', name: 'nama_kelas', className: 'text-center align-middle'},
+                { data: 'akademik', name: 'akademik', className: 'align-middle'},
+                { data: 'matkul', name: 'matkul', className: 'align-middle'},
+                { data: 'jurusan', name: 'jurusan', className: 'align-middle'},
+                { data: 'dosen', name: 'dosen', className: 'align-middle'},
+                { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center align-middle'}
+            ]
+        });
+        @endif
+
         $('#modal-edit').on('show.bs.modal', function(event) {
             var button = $(event.relatedTarget);
 
-            var id            = button.attr('data-id');
-            var kode_akademik = button.attr('data-kode-akademik');
-            var kode_matkul   = button.attr('data-kode-matkul');
-            var kode_jurusan  = button.attr('data-kode-jurusan');
-            var nik           = button.attr('data-nik');
-            var nama_kelas    = button.attr('data-nama-kelas');
+            var id      = button.attr('data-id');
+            var kode_akademik = button.attr('data-kode_akademik');
+            var kode_matkul = button.attr('data-kode_matkul');
+            var kode_jurusan = button.attr('data-kode_jurusan');
+            var nik         = button.attr('data-nik');
+            var nama_kelas  = button.attr('data-nama_kelas');
 
             var modal = $(this);
 
@@ -305,10 +283,10 @@
             modal.find('#form-edit').attr('action', update);
 
             modal.find('#edit_id_kelas').val(id);
-            modal.find('#edit_kode_akademik').val(kode_akademik).trigger('change');
-            modal.find('#edit_kode_matkul').val(kode_matkul).trigger('change');
-            modal.find('#edit_kode_jurusan').val(kode_jurusan).trigger('change');
-            modal.find('#edit_nik').val(nik).trigger('change');
+            modal.find('#edit_kode_akademik').val(kode_akademik);
+            modal.find('#edit_kode_matkul').val(kode_matkul);
+            modal.find('#edit_kode_jurusan').val(kode_jurusan);
+            modal.find('#edit_nik').val(nik);
             modal.find('#edit_nama_kelas').val(nama_kelas);
         });
     });

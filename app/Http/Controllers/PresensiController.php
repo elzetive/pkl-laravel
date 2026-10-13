@@ -10,67 +10,103 @@ use App\Models\PresensiModel;
 use App\Models\KelasModel;
 use App\Models\PertemuanModel;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class PresensiController extends Controller
 {
-public function index($id_pertemuan)
-{
-    $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
+    public function index(Request $request, $id_pertemuan)
+    {
+        $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
 
-    if ((string)$pertemuan->status_pertemuan === '1') {
-        $waktu_mulai = $pertemuan->updated_at ?? now();
+        if ((string)$pertemuan->status_pertemuan === '1') {
+            $waktu_mulai = $pertemuan->updated_at ?? now();
 
-        if (now()->diffInSeconds($waktu_mulai) >= 300) {
-            $pertemuan->status_pertemuan = 0;
-            $pertemuan->save();
-        }
-    }
-
-    $kelas = KelasModel::findOrFail($pertemuan->id_kelas);
-    $dosen = DosenModel::where('nik', $kelas->nik)->first();
-    $matkul = MatkulModel::where('kode_matkul', $kelas->kode_matkul)->first();
-    $jurusan = JurusanModel::where('kode_jurusan', $kelas->kode_jurusan)->first();
-
-    $mahasiswa = DetailKelasModel::where('id_kelas', $kelas->id_kelas)
-        ->pluck('nim')
-        ->toArray();
-
-    PresensiModel::where('id_pertemuan', $id_pertemuan)
-        ->whereNotIn('nim', $mahasiswa)
-        ->delete();
-
-    if (!empty($mahasiswa)) {
-        $nim_terdaftar = PresensiModel::where('id_pertemuan', $id_pertemuan)
-            ->whereIn('nim', $mahasiswa)
-            ->pluck('nim')
-            ->toArray();
-
-        $data_presensi_baru = [];
-
-        foreach ($mahasiswa as $nim) {
-            if (!in_array($nim, $nim_terdaftar)) {
-                $data_presensi_baru[] = [
-                    'id_pertemuan'     => $id_pertemuan,
-                    'nim'              => $nim,
-                    'status_kehadiran' => 'A',
-                ];
+            if (now()->diffInSeconds($waktu_mulai) >= 300) {
+                $pertemuan->status_pertemuan = 0;
+                $pertemuan->save();
             }
         }
 
-        if (!empty($data_presensi_baru)) {
-            PresensiModel::insert($data_presensi_baru);
+        $kelas = KelasModel::findOrFail($pertemuan->id_kelas);
+        $dosen = DosenModel::where('nik', $kelas->nik)->first();
+        $matkul = MatkulModel::where('kode_matkul', $kelas->kode_matkul)->first();
+        $jurusan = JurusanModel::where('kode_jurusan', $kelas->kode_jurusan)->first();
+
+        $mahasiswa = DetailKelasModel::where('id_kelas', $kelas->id_kelas)
+            ->pluck('nim')->toArray();
+
+        PresensiModel::where('id_pertemuan', $id_pertemuan)
+            ->whereNotIn('nim', $mahasiswa)->delete();
+
+        if (!empty($mahasiswa)) {
+            $nim_terdaftar = PresensiModel::where('id_pertemuan', $id_pertemuan)
+                ->whereIn('nim', $mahasiswa)->pluck('nim')->toArray();
+
+            $data_presensi_baru = [];
+
+            foreach ($mahasiswa as $nim) {
+                if (!in_array($nim, $nim_terdaftar)) {
+                    $data_presensi_baru[] = [
+                        'id_pertemuan'     => $id_pertemuan,
+                        'nim'              => $nim,
+                        'status_kehadiran' => 'A',
+                    ];
+                }
+            }
+
+            if (!empty($data_presensi_baru)) {
+                PresensiModel::insert($data_presensi_baru);
+            }
         }
+
+        if ($request->ajax()) {
+            $data = PresensiModel::with('mahasiswa')
+                ->where('id_pertemuan', $id_pertemuan)
+                ->orderBy('nim', 'asc');
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('mahasiswa', function ($baris) {
+                    $nama = $baris->mahasiswa->nama_mahasiswa ?? $baris->mahasiswa->nama ?? '-';
+                    return $baris->nim . ' - ' . $nama;
+                })
+                ->addColumn('status', function ($baris) {
+                    $status = $baris->status_kehadiran;
+                    if (in_array($status, ['H'])) {
+                        return '<span>Hadir</span>';
+                    } elseif (in_array($status, ['I'])) {
+                        return '<span>Izin</span>';
+                    } elseif (in_array($status, ['S'])) {
+                        return '<span>Sakit</span>';
+                    } elseif (in_array($status, ['D'])) {
+                        return '<span>Dispensasi</span>';
+                    } else {
+                        return '<span>Alpa</span>';
+                    }
+                })
+                ->addColumn('aksi', function ($baris) {
+                    $nama = $baris->mahasiswa->nama_mahasiswa ?? $baris->mahasiswa->nama ?? '-';
+                    return '<button type="button"
+                        class="btn btn-warning btn-sm btn-edit"
+                        data-id="' . $baris->id_presensi . '"
+                        data-nim="' . $baris->nim . '"
+                        data-nama="' . $nama . '"
+                        data-status="' . $baris->status_kehadiran . '">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </button>';
+                })
+                ->rawColumns(['status', 'aksi'])
+                ->make(true);
+        }
+
+        $data_presensi = PresensiModel::with('mahasiswa')
+            ->where('id_pertemuan', $id_pertemuan)
+            ->orderBy('nim', 'asc')
+            ->get();
+
+        return view('admin.data_presensi.index', compact('pertemuan', 'kelas', 'dosen', 'matkul', 'jurusan', 'data_presensi'));
     }
 
-    $data_presensi = PresensiModel::with('mahasiswa')
-        ->where('id_pertemuan', $id_pertemuan)
-        ->orderBy('nim', 'asc')
-        ->get();
-
-    return view('admin.data_presensi.index', compact(
-        'pertemuan', 'kelas', 'dosen', 'matkul', 'jurusan', 'data_presensi'
-    ));
-}
     public function edit_status($id_pertemuan, $status)
     {
         $pertemuan = PertemuanModel::findOrFail($id_pertemuan);
@@ -114,8 +150,8 @@ public function index($id_pertemuan)
         $nim = auth()->user()->username;
 
         $data_presensi = PresensiModel::with(['pertemuan.kelas.matkul'])
-        ->where('nim', $nim)
-        ->get();
+            ->where('nim', $nim)
+            ->get();
 
         return view('mahasiswa.data_presensi.index', compact('data_presensi'));
     }
@@ -127,13 +163,13 @@ public function index($id_pertemuan)
 
         $pertemuan = PertemuanModel::where('id_pertemuan', $id_pertemuan)->first();
 
-        if (!$pertemuan || (string)$pertemuan->status_pertemuan === '0')
-        {
+        if (!$pertemuan || (string)$pertemuan->status_pertemuan === '0') {
             return redirect()->back()->with('error', 'Presensi telah ditutup, Anda tidak bisa melakukan presensi!');
         }
+
         $presensi = PresensiModel::where('id_pertemuan', $id_pertemuan)
-                        ->where('nim', $nim)
-                        ->first();
+                    ->where('nim', $nim)
+                    ->first();
 
         if ($presensi && $presensi->status_kehadiran === 'H') {
             return redirect()->back()->with('error', 'Anda sudah melakukan presensi di presensi ini!');
@@ -163,7 +199,7 @@ public function index($id_pertemuan)
             ->count();
 
         return response()->json([
-            'jumlah_hadir' =>(int)$jumlah_hadir
+            'jumlah_hadir' => (int)$jumlah_hadir
         ]);
     }
 }

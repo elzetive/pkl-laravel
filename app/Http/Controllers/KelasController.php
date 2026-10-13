@@ -12,6 +12,7 @@ use App\Exports\KelasExport;
 use App\Imports\KelasImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\Facades\DataTables;
 
 class KelasController extends Controller
 {
@@ -25,17 +26,65 @@ public function index(Request $request)
             $pilih_akademik = $akademik->first()->kode_akademik;
         }
 
-        $kelas = collect();
-        if ($pilih_akademik) {
-            $query = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])
-                ->where('kode_akademik', $pilih_akademik);
+        if ($request->ajax()) {
+            $query = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen']);
+            if ($pilih_akademik) {
+                $query->where('kode_akademik', $pilih_akademik);
+            }
 
             if ($user->peran === 'D') {
                 $nik_dosen = $user->nik ?? $user->username;
                 $query->where('nik', $nik_dosen);
             }
 
-            $kelas = $query->get();
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->addColumn('akademik', function ($baris) {
+                    $is_ganjil = in_array(strtoupper($baris->akademik->semester ?? ''), ['GL', '1', 'GANJIL']);
+                    return $baris->akademik ? $baris->akademik->tahun . '-' . ($is_ganjil ? 'Ganjil' : 'Genap') : $baris->kode_akademik;
+                })
+                ->addColumn('matkul', function ($baris) {
+                    return $baris->matkul->nama_matkul ?? $baris->kode_matkul;
+                })
+                ->addColumn('jurusan', function ($baris) {
+                    return $baris->jurusan->nama_jurusan ?? $baris->kode_jurusan;
+                })
+                ->addColumn('dosen', function ($baris) {
+                    return $baris->dosen->nama ?? $baris->nik;
+                })
+                ->addColumn('aksi', function ($baris) use ($pilih_akademik) {
+                    $btn = '<div class="btn-group" role="group">';
+
+                    $btn = '<button type="button" class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target= "#modal-edit"
+                    data-id="' . $baris->id_kelas .'"
+                    data-kode_akademik="' . $baris->kode_akademik .'"
+                    data-kode_matkul ="'.$baris->kode_matkul.'"
+                    data-kode_jurusan = "'.$baris->kode_jurusan.'"
+                    data-nik    = "'.$baris->nik.'"
+                    data-nama_kelas = "'.$baris->nama_kelas.'">
+                    <i class="fas fa-edit"></i> Edit
+                    </button>';
+
+                    $btn .= '<form action="' .route('admin.data_kelas_matkul.destroy', $baris->id_kelas) . '" method="POST" class="d-inline mr-1" onsubmit="return confirm(\'Yakin ingin menghapus kelas ini?\')">
+                    <input type="hidden" name="_token" value="' . csrf_token() . '">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="filter_akademik" value="' . $pilih_akademik .'">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                    </form>';
+
+                   $btn .= '<a href="'.route('admin.data_detail_kelas', $baris->id_kelas).'" class="btn btn-primary btn-sm mr-1" <i class="fas fa-list"></i> Detail
+                        </a>';
+                    $btn .= '<a href="'.route('admin.data_pertemuan', $baris->id_kelas).'" class="btn btn-danger btn-sm">
+                        <i class="fas fa-calendar-alt"></i> Pertemuan
+                        </a>';
+                    $btn .= '</div>';
+
+                    return $btn;
+                })
+                ->rawColumns(['aksi'])
+                ->make(true);
         }
 
         $matkul = MatkulModel::all();
@@ -43,24 +92,10 @@ public function index(Request $request)
         $dosen = DosenModel::all();
 
         if ($user->peran === 'D') {
-            return view('dosen.data_kelas_matkul.index', compact(
-                'akademik',
-                'pilih_akademik',
-                'kelas',
-                'matkul',  
-                'jurusan', 
-                'dosen'
-            ));
+            return view('dosen.data_kelas_matkul.index', compact('akademik', 'pilih_akademik', 'matkul', 'jurusan', 'dosen'));
         }
 
-        return view('admin.data_kelas_matkul.index', compact(
-            'akademik',
-            'pilih_akademik',
-            'kelas',
-            'matkul',
-            'jurusan',
-            'dosen'
-        ));
+        return view('admin.data_kelas_matkul.index', compact('akademik', 'pilih_akademik', 'matkul', 'jurusan', 'dosen'));
     }
         public function store(Request $request)
     {

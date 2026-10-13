@@ -10,15 +10,51 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\Facades\DataTables;
+
 class MahasiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mahasiswa = MahasiswaModel::orderBy('nim', 'desc')
-            ->orderBy('nama', 'asc')
-            ->get();
+        if ($request->ajax()) {
+            $data = MahasiswaModel::orderBy('nim', 'desc')
+                ->orderBy('nama', 'asc');
 
-        return view('admin.data_mahasiswa.index', compact('mahasiswa'));
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('kelamin', function ($baris) {
+                    return $baris->kelamin == 'L' ? 'Laki-Laki' : 'Perempuan';
+                })
+                ->editColumn('img', function ($baris) {
+                    if ($baris->img && Storage::disk('public')->exists('mahasiswa/' . $baris->img)) {
+                        return '<img src="' . asset('storage/mahasiswa/' . $baris->img) . '" width="50" height="50" alt="Foto Mahasiswa" class="img-thumbnail">';
+                    }
+                    return '<span class="text-muted">-</span>';
+                })
+                ->addColumn('aksi', function ($baris) {
+                    $btn = '<div class="btn-group" role="group">';
+                    $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                        data-nim ="' . $baris->nim . '"
+                        data-nama = "' . $baris->nama . '"
+                        data-kontak = "' .$baris->kontak . '"
+                        data-email = "' . $baris->email . '"
+                        data-kelamin = "' . $baris ->kelamin . '">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>';
+
+                    $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                        data-nim="' . $baris->nim . '">
+                        <i class="fas fa-trash"></i> Hapus
+                        </button>';
+                    $btn .= '</div>';
+
+                    return $btn;
+                })
+                ->rawColumns(['img', 'aksi'])
+                ->make(true);
+        }
+
+        return view('admin.data_mahasiswa.index');
     }
 
     public function store(Request $request)

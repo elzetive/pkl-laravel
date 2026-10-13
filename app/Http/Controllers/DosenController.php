@@ -10,16 +10,49 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DosenImport;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Yajra\DataTables\Facades\DataTables;
 class DosenController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $dosen = DosenModel::orderBy('nik', 'desc')
-            ->orderBy('nama', 'asc')
-            ->get();
+        if ($request->ajax()) {
+            $data = DosenModel::orderBy('nik', 'desc')
+            ->orderBy('nama', 'asc');
 
-        return view('admin.data_dosen.index', compact('dosen'));
+            return DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn('kelamin', function ($baris) {
+                return $baris->kelamin == 'L' ? 'Laki-Laki' : 'Perempuan';
+            })
+            ->editColumn('img', function ($baris) {
+                if ($baris->img && Storage::disk('public')->exists('dosen/' . $baris->img)) {
+                    return '<img src="' . asset('storage/dosen/' . $baris->img) . '" width="50" height="50" alt="Foto Dosen" class="img-thumbnail">';
+                }
+                return '<span class="text-muted">-</span>';
+            })
+            ->addColumn('aksi', function ($baris) {
+                $btn = '<div class="btn-group" role="group">';
+
+                $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                data-nik ="' . $baris->nik . '"
+                data-nama ="' . $baris->nama . '"
+                data-kontak = "' . $baris->kontak . '"
+                data-email = "' . $baris->email . '"
+                data-kelamin = "' . $baris->kelamin . '">
+                <i class = "fas fa-edit"></i> Edit
+                </button>';
+                $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                data-nik = "' . $baris->nik .'">
+                <i class= "fas fa-trash"></i> Hapus
+                </button>';
+                $btn .= '</div>';
+
+                return $btn;
+            })
+            ->rawColumns(['img', 'aksi'])
+            ->make(true);
+        }
+        return view('admin.data_dosen.index');
     }
 
     public function store(Request $request)

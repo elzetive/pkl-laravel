@@ -9,15 +9,48 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\Facades\DataTables;
 
 class PenggunaController extends Controller
 {
-    public function index ()
+    public function index (Request $request)
     {
-        $pengguna = PenggunaModel::orderBy('id', 'desc')
-        ->get();
+        if ($request->ajax()) {
+            $data = PenggunaModel::orderBy('id', 'desc');
 
-        return view('admin.data_pengguna.index', compact('pengguna'));
+            return DataTables::of($data)
+            ->addIndexColumn()
+            ->editColumn('peran', function ($baris) {
+                if ($baris->peran === 'A') {
+                    return '<span>Admin</span>';
+                } elseif ($baris->peran === 'D') {
+                    return '<span>Dosen</span>';
+                } else {
+                    return '<span>Mahasiswa</span>';
+                }
+            })
+            ->addColumn('aksi', function ($baris) {
+                $btn = '<div class="btn-group" role="group">';
+                $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                data-id="' . $baris->id . '"
+                data-username = "' . $baris->username .'"
+                data-nama = "' . $baris->nama .'"
+                data-peran = "' . $baris->peran . '">
+                <i class="fas fa-edit"></i> Edit
+                </button>';
+                $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                data-id ="' . $baris->id .'">
+                <i class="fas fa-trash"></i> Hapus
+                </button>';
+                $btn .= '</div>';
+
+                return $btn;
+            })
+            ->rawColumns(['peran', 'aksi'])
+            ->make(true);
+        }
+
+        return view('admin.data_pengguna.index');
     }
 
     public function store(Request $request)

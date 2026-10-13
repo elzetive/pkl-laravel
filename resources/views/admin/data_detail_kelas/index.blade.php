@@ -76,44 +76,26 @@
                     <a href="{{ route($peran . 'data_detail_kelas.export', $kelas->id_kelas) }}" class="btn btn-info mb-2">
                         <i class="fas fa-file-download"></i> Export Excel
                     </a>
-                    <a href="{{ route($peran . 'data_detail_kelas.pdf', $kelas->id_kelas) }}" 
-                       target="_blank" 
+                    <a href="{{ route($peran . 'data_detail_kelas.pdf', $kelas->id_kelas) }}"
+                       target="_blank"
                        class="btn btn-danger mb-2">
                         <i class="fas fa-file-pdf me-1"></i> Cetak PDF
-                    </a>                    
+                    </a>
                 </div>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr align="center">
-                            <th width="5%">No</th>
-                            <th>NIM</th>
-                            <th>Nama</th>
-                            <th width="15%">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($detail_kelas as $index => $item)
-                            <tr>
-                                <td align="center">{{ $loop->iteration }}</td>
-                                <td>{{ $item->nim }}</td>
-                                <td>{{ $item->mahasiswa?->nama ?? '-' }}</td>
-                                <td align="center">
-                                    <form action="{{ route($peran . 'data_detail_kelas.destroy', ['id_kelas' => $kelas->id_kelas, 'nim' => $item->nim]) }}" method="POST" onsubmit="return confirm('Yakin Hapus Data Ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                </td>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="tabel-detail-kelas" style="width: 100%;">
+                        <thead>
+                            <tr align="center">
+                                <th width="5%">No</th>
+                                <th>NIM</th>
+                                <th>Nama</th>
+                                <th width="15%">Aksi</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" align="center">Data Tidak Ditemukan</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -175,11 +157,25 @@
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('#modal-tambah').on('shown.bs.modal', function () {
+        $('#tabel-detail-kelas').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: "{{ route($peran . 'data_detail_kelas', $kelas->id_kelas) }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle' },
+                { data: 'nim', name:'nim', className: 'align-middle' },
+                { data: 'nama', name: 'nama', className: 'align-middle'},
+                { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center align-middle'}
+            ]
+        });
+
+        $('#modal-tambah').on('shown.bs.modal', function() {
             $('#nim').select2({
                 dropdownParent: $('#modal-tambah'),
                 placeholder: "Pilih Mahasiswa",
@@ -190,4 +186,3 @@
 </script>
 @endpush
 
-@endsection

@@ -8,16 +8,52 @@ use App\Exports\AkademikExport;
 use App\Imports\AkademikImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\Facades\DataTables;
 
 class AkademikController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $akademik = AkademikModel::orderBy('tahun', 'desc')
-            ->orderBy('semester', 'asc')
-            ->get();
+        if ($request->ajax()) {
+            $data = AkademikModel::orderBy('tahun', 'desc')
+                    ->orderBy('semester', 'asc');
 
-        return view('admin.data_akademik.index', compact('akademik'));
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('semester', function ($baris) {
+                    if ($baris->semester === 'gl'){
+                        return 'Ganjil';
+                    } else {
+                        return 'Genap';
+                    }
+
+                })
+                ->editColumn('isactive', function ($baris) {
+                    if ($baris->isactive == 1) {
+                        return '<span>Aktif</span>';
+                    }
+                    return '<span>Tidak Aktif</span>';
+                })
+                ->addColumn('aksi', function ($baris) {
+                    $btn = '<div class="btn-group" role="group">';
+                    $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                        data-kode_akademik = "' . $baris->kode_akademik . '"
+                        data-semester = "' . $baris->semester .'"
+                        data-tahun = "' . $baris->tahun .'"
+                        data-isactive = "' . $baris->isactive .'">
+                        <i class="fas fa-edit"></i> Edit
+                        </button> ';
+                    $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                                data-kode_akademik = "' . $baris->kode_akademik .'">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>';
+                    $btn .= '</div>';
+                    return $btn;
+                })
+                ->rawColumns(['isactive', 'aksi'])
+                ->make(true);
+        }
+        return view('admin.data_akademik.index');
     }
 
     public function store(Request $request)

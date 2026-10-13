@@ -8,16 +8,37 @@ use App\Models\JurusanModel;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Yajra\DataTables\DataTables;
 
 class JurusanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jurusan = JurusanModel::orderBy('kode_jurusan', 'desc')
-        ->orderBy('nama_jurusan', 'asc')
-        ->get();
+        if ($request->ajax()) {
+            $data = JurusanModel::orderBy('kode_jurusan', 'asc');
 
-        return view('admin.data_jurusan.index', compact('jurusan'));
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('aksi', function ($baris) {
+                    $btn = '<div class="btn-group" role="group">';
+                    $btn .= '<button type="button" class="btn btn-sm btn-warning btn-edit mr-2"
+                    data-kode_jurusan = "' . $baris->kode_jurusan . '"
+                    data-nama_jurusan = "' . $baris->nama_jurusan . '">
+                    <i class="fas fa-edit"></i> Edit
+                    </button>';
+                    $btn .= '<button type="button" class="btn btn-sm btn-danger btn-hapus"
+                    data-kode_jurusan ="' . $baris->kode_jurusan . '">
+                    <i class="fas fa-trash"></i> Hapus
+                    </button>';
+                    $btn .= '</div>';
+
+                    return $btn;
+                })
+                ->rawColumns(['aksi'])
+                ->make(true);
+        }
+
+        return view('admin.data_jurusan.index');
     }
 
     public function store(Request $request)

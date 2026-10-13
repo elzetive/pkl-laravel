@@ -54,7 +54,6 @@
                 </div>
             </div>
 
-            <!-- Tabel Data Pertemuan -->
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title"><strong>Daftar Pertemuan</strong></h3>
@@ -66,44 +65,24 @@
                         </button>
                     </div>
 
-                    <table id="example1" class="table table-bordered table-striped">
-                        <thead>
-                            <tr class="text-center">
-                                <th width="5%">No</th>
-                                <th width="15%">Pertemuan Ke</th>
-                                <th>Judul Pertemuan</th>
-                                <th width="20%">Tanggal</th>
-                                <th width="25%">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($pertemuan as $item)
+                    @php
+                        $peran = Auth::user()->peran === 'D' ? 'dosen.' : 'admin.';
+                    @endphp
+                    <div class="table-responsive">
+                        <table id="tabel-pertemuan" class="table table-bordered table-striped" style="width: 100%;">
+                            <thead>
                                 <tr class="text-center">
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>Pertemuan {{ $item->pertemuan_ke }}</td>
-                                    <td class="text-left">{{ $item->judul_pertemuan }}</td>
-                                    <td>{{ $item->tanggal->isoFormat('dddd, D MMMM YYYY') }}</td>
-                                    <td>
-                                        <a href="{{ route('admin.data_presensi', $item->id_pertemuan) }}" class="btn btn-info btn-sm">
-                                            <i class="fas fa-qrcode"></i> Presensi
-                                        </a>
-
-                                        <form action="{{ route('admin.data_pertemuan.destroy', [$item->id_kelas, $item->id_pertemuan]) }}" method="POST" class="d-inline d-delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger btn-delete" title="Hapus Pertemuan" onclick="return confirm('Apakah Anda yakin ingin menghapus data pertemuan ini?')">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </td>
+                                    <th width="5%">No</th>
+                                    <th width="15%">Pertemuan Ke</th>
+                                    <th>Judul Pertemuan</th>
+                                    <th width="20%">Tanggal</th>
+                                    <th width="25%">Aksi</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">Belum ada pertemuan untuk kelas ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -145,9 +124,7 @@
             </div>
         </div>
     </div>
-@endsection
 
-@push('scripts')
     @if (session('success'))
         <script>
             alert("{{ session('success') }}");
@@ -159,4 +136,25 @@
             alert("{{ session('error') }}");
         </script>
     @endif
+
+@endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#tabel-pertemuan').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: "{{ route($peran . 'data_pertemuan', $kelas->id_kelas) }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle'},
+                { data: 'pertemuan_ke', name: 'pertemuan_ke', className: 'text-center align-middle' },
+                { data: 'judul_pertemuan', name: 'judul_pertemuan', className: 'align-middle'},
+                { data: 'tanggal', name: 'tanggal', className: 'text-center align-middle'},
+                { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center align-middle'}
+            ]
+        });
+    });
+</script>
 @endpush

@@ -33,81 +33,20 @@
                         <i class="fas fa-file-pdf"></i> Cetak PDF
                     </a>
                 </div>
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr align="center">
-                        <th width="5%">No</th>
-                        <th>Username</th>
-                        <th>Nama</th>
-                        <th>Peran</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($pengguna as $data )
-                        <tr>
-                            <td align="center">{{ $loop->iteration }}</td>
-                            <td align="center">{{ $data->username }}</td>
-                            <td align="center">{{ $data->nama }}</td>
-                            <td align="center">{{ $data->peran }}</td>
-                            <td align="center">
-                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-edit-{{ $data->id }}">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <form action="{{ route('admin.data_pengguna.destroy', $data->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin Hapus Data Pengguna Ini?')">
-                                @csrf
-                                @method('delete')
-                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Hapus</button>
-                                </form>
+                <table class="table table-bordered table-striped" id="tabel-pengguna" style="width: 100%">
+                    <thead>
+                        <tr align="center">
+                            <th width="5%">No</th>
+                            <th>Username</th>
+                            <th>Nama</th>
+                            <th>Peran</th>
+                            <th width="150">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                                <div class="modal fade" id="modal-edit-{{ $data->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h4 class="modal-title">Edit Data Pengguna</h4>
-                                                <button type="button" class="close" data-dismiss="modal" aria-label="close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <form action="{{ route('admin.data_pengguna.update', $data->id) }}" method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-body" align="left">
-                                                    <div class="form-group">
-                                                        <label for="username">Username</label>
-                                                        <input type="text" class="form-control" name="username" value="{{ $data->username }}" readonly>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="nama">Nama</label>
-                                                        <input type="text" class="form-control" name="nama" value="{{ $data->nama }}" required>
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="Peran">Peran</label>
-                                                        <select name="peran" class="form-control" required>
-                                                            <option value="" disabled>-- Pilih Peran --</option>
-                                                            <option value="A" {{ $data->peran == 'A' ? 'selected' : '' }}>Admin</option>
-                                                            <option value="D" {{ $data->peran == 'D' ? 'selected' : '' }}>Dosen</option>
-                                                            <option value="M" {{ $data->peran == 'M' ? 'selected' : '' }}>Mahasiswa</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer justify-content-end">
-                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-primary">Simpan</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" align="center">Data Tidak Ditemukan</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -154,6 +93,49 @@
     </div>
 </div>
 
+<div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Edit Data Pengguna</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="form-edit" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit_username">Username</label>
+                        <input type="text" class="form-control" name="username" id="edit_username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_nama">Nama</label>
+                        <input type="text" class="form-control" name="nama" id="edit_nama" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_sandi">Password Baru</label>
+                        <input type="password" class="form-control" name="sandi" id="edit_sandi">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_peran">Peran</label>
+                        <select name="peran" id="edit_peran" class="form-control" required>
+                            <option value="A">Admin</option>
+                            <option value="D">Dosen</option>
+                            <option value="M">Mahasiswa</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-end">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modal-import" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -180,6 +162,11 @@
     </div>
 </div>
 
+<form id="form-hapus" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 
 @if (session('success'))
     <script>
@@ -194,3 +181,46 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function () {
+        var table = $('#tabel-pengguna').DataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: "{{ route('admin.data_pengguna') }}",
+            columns: [
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle'},
+                {data: 'username', name: 'username', className: 'text-center align-middle'},
+                {data: 'nama', name: 'nama', className: 'text-center align-middle'},
+                {data: 'peran', name: 'peran', className: 'text-center align-middle'},
+                {data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center align-middle'}
+            ]
+        });
+
+        $('#tabel-pengguna').on('click', '.btn-edit', function() {
+            var id = $(this).data('id');
+            var username = $(this).data('username');
+            var nama = $(this).data('nama');
+            var peran = $(this).data('peran');
+
+            $('#edit_username').val(username);
+            $('#edit_nama').val(nama);
+            $('#edit_peran').val(peran);
+            $('#edit_sandi').val('');
+
+            $('#form-edit').attr('action', '/admin/data_pengguna/' + id);
+            $('#modal-edit').modal('show');
+        });
+
+        $('#tabel-pengguna').on('click', '.btn-hapus', function() {
+            var id = $(this).data('id');
+
+            if (confirm('Apakah kamu yakin ingin menghapus data pengguna?')) {
+                $('#form-hapus').attr('action', '/admin/data_pengguna/' + id).submit();
+            }
+        });
+    });
+</script>
+@endpush

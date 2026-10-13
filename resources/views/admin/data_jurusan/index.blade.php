@@ -42,72 +42,17 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-bordered table-striped" id="tabel-jurusan" style="width: 100%">
                             <thead>
                                 <tr class="text-center">
                                     <th width="5%">No</th>
                                     <th>Kode Jurusan</th>
                                     <th>Nama Jurusan</th>
-                                    <th width="15%">Aksi</th>
+                                    <th width="150">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($jurusan as $data)
-                                    <tr>
-                                        <td class="text-center">{{ $loop->iteration }}</td>
-                                        <td class="text-center">{{ $data->kode_jurusan }}</td>
-                                        <td>{{ $data->nama_jurusan }}</td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modal-edit-{{ $data->kode_jurusan }}">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
 
-                                            <form action="{{ route('admin.data_jurusan.destroy', $data->kode_jurusan) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin Hapus Data Jurusan Ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-trash"></i> Hapus
-                                                </button>
-                                            </form>
-
-                                            <!-- Modal Edit -->
-                                            <div class="modal fade" id="modal-edit-{{ $data->kode_jurusan }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h4 class="modal-title">Edit Data Jurusan</h4>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <form action="{{ route('admin.data_jurusan.update', $data->kode_jurusan) }}" method="POST" enctype="multipart/form-data">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <div class="modal-body text-left">
-                                                                <div class="form-group">
-                                                                    <label for="kode_jurusan">Kode Jurusan</label>
-                                                                    <input type="text" name="kode_jurusan" class="form-control" value="{{ $data->kode_jurusan }}" readonly>
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label for="nama_jurusan">Nama Jurusan</label>
-                                                                    <input type="text" class="form-control" name="nama_jurusan" value="{{ old('nama_jurusan', $data->nama_jurusan) }}" required>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer justify-content-end">
-                                                                <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
-                                                                <button type="submit" class="btn btn-primary">Simpan</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center">Data Tidak Ditemukan</td>
-                                    </tr>
-                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -175,6 +120,42 @@
     </div>
 </div>
 
+<div class="modal fade" id="modal-edit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Edit Data Jurusan</h4>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="form-edit" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body text-left">
+                    <div class="form-group">
+                        <label for="edit_kode_jurusan">Kode Jurusan</label>
+                        <input type="text" id="edit_kode_jurusan" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_nama_jurusan">Nama Jurusan</label>
+                        <input type="text" class="form-control" name="nama_jurusan" id="edit_nama_jurusan" required>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-end">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form id="form-hapus" method="POST" style="display: none">
+    @csrf
+    @method('DELETE')
+</form>
+
 @if (session('success'))
     <script>
         alert("{{ session('success') }}");
@@ -188,3 +169,41 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function () {
+        var table = $('#tabel-jurusan').dataTable({
+            processing: true,
+            serverSide: true,
+            autoWidth: false,
+            ajax: "{{ route('admin.data_jurusan') }}",
+            columns: [
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle' },
+                { data: 'kode_jurusan', name: 'kode_jurusan', className: 'text-center align-middle' },
+                { data: 'nama_jurusan', name: 'nama_jurusan', className: 'text-center align-middle' },
+                { data: 'aksi', name: 'aksi', orderable: false, searchable: false, className: 'text-center align-middle'}
+            ]
+        });
+
+        $('#tabel-jurusan').on('click', '.btn-edit', function() {
+            var kode_jurusan = $(this).data('kode_jurusan');
+            var nama_jurusan = $(this).data('nama_jurusan');
+
+            $('#edit_kode_jurusan').val(kode_jurusan);
+            $('#edit_nama_jurusan').val(nama_jurusan);
+
+            $('#form-edit').attr('action', '/admin/data_jurusan/' + kode_jurusan);
+            $('#modal-edit').modal('show');
+        });
+
+        $('#tabel-jurusan').on('click', '.btn-hapus', function() {
+            var kode_jurusan = $(this).data('kode_jurusan');
+
+            if(confirm('Apakah kamu yakin ingin menghapus data jurusan?')) {
+                $('#form-hapus').attr('action', '/admin/data_jurusan/' + kode_jurusan).submit();
+            }
+        });
+    });
+</script>
+@endpush

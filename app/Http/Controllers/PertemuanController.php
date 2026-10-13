@@ -9,12 +9,54 @@ use App\Models\PresensiModel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class PertemuanController extends Controller
 {
-    public function index($id_kelas)
+    public function index(Request $request, $id_kelas)
     {
+        $user = Auth::user();
         $kelas = KelasModel::with(['dosen', 'matkul'])->findOrFail($id_kelas);
+
+        if ($request->ajax()) {
+            $data = PertemuanModel::where('id_kelas', $id_kelas)
+                ->orderBy('pertemuan_ke', 'asc');
+
+                return DataTables::of($data)
+                    ->addIndexColumn()
+                    ->addColumn('pertemuan_ke', function ($baris) {
+                        return 'Pertemuan ' . $baris->pertemuan_ke;
+                    })
+                    ->addColumn('judul_pertemuan', function ($baris) {
+                        return $baris->judul_pertemuan;
+                    })
+                    ->addColumn('tanggal', function ($baris) {
+                        return $baris->tanggal->translatedFormat('l, d F Y');
+                    })
+                    ->addColumn('aksi', function ($baris) use ($user, $kelas) {
+                        $peran = $user->peran === 'D' ? 'dosen.' : 'admin.';
+                        $presensi = route($peran . 'data_presensi', $baris->id_pertemuan);
+                        $destroy = route($peran . 'data_pertemuan.destroy', [$kelas->id_kelas, $baris->id_pertemuan]);
+
+                        $btn = '<div class="btn-group" role="group">';
+                        $btn .= '<a href="' .$presensi. '" class="btn btn-info btn-sm mr-2">
+                            <i class="fas fa-qrcode"></i> Presensi
+                        </a>';
+
+                        $btn .= '<form action="' .$destroy. '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah anda yakin ingin menghapus data pertemuan ini?\')">';
+                        $btn .= csrf_field();
+                        $btn .= method_field('DELETE');
+                        $btn .= '<button type="submit" class="btn btn-sm btn-danger" title="Hapus Pertemuan">
+                            <i class="fas fa-trash"></i> Hapus
+                            </button>';
+                        $btn .= '</form>';
+                        $btn .= '</div>';
+
+                        return $btn;
+                    })
+                    ->rawColumns(['aksi'])
+                    ->make(true);
+        }
 
         $pertemuan = PertemuanModel::where('id_kelas', $id_kelas)
             ->orderBy('pertemuan_ke', 'asc')
@@ -26,7 +68,7 @@ class PertemuanController extends Controller
             $pertemuan_lanjut++;
         }
 
-        $tampil_pertemuan = Auth::user()->peran === 'D' ? 'dosen.data_pertemuan.index' : 'admin.data_pertemuan.index';
+        $tampil_pertemuan = $user->peran === 'D' ? 'dosen.data_pertemuan.index' : 'admin.data_pertemuan.index';
 
         return view($tampil_pertemuan, compact('kelas', 'pertemuan', 'pertemuan_lanjut'));
     }
@@ -85,12 +127,12 @@ class PertemuanController extends Controller
         $pertemuan = PertemuanModel::where('id_kelas', $id_kelas)
                 ->orderBy('pertemuan_ke', 'asc')
                 ->get();
-        
+
         $daftar_mahasiswa = DetailKelasModel::with('mahasiswa')
             ->where('id_kelas', $id_kelas)
             ->orderBy('nim', 'asc')
             ->get();
-        
+
         $peran = Auth::user()->peran === 'D' ? 'dosen.data_pertemuan.pdf' : 'admin.data_pertemuan.pdf';
 
         $pdf  = Pdf::loadView($peran, compact('kelas', 'pertemuan', 'daftar_mahasiswa'))->setPaper('a4', 'portrait');

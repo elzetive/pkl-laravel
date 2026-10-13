@@ -11,19 +11,48 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class DetailKelasController extends Controller
 {
-    public function index($id_kelas)
+    public function index(Request $request, $id_kelas)
     {
         $user = Auth::user();
-
         $kelas = KelasModel::with(['akademik', 'matkul', 'jurusan', 'dosen'])->findOrFail($id_kelas);
-        $detail_kelas = DetailKelasModel::with('mahasiswa')->where('id_kelas', $id_kelas)->get();
 
+        if  ($request->ajax()) {
+            $data = DetailKelasModel::with('mahasiswa')
+                ->where('id_kelas', $id_kelas)
+                ->orderBy('nim', 'asc');
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('nim', function ($baris) {
+                    return $baris->nim;
+                })
+                ->addColumn('nama', function ($baris) {
+                    return $baris->mahasiswa?->nama ?? '-';
+                })
+                ->addColumn('aksi', function ($baris) use ($kelas, $user) {
+                    $peran = $user->peran === 'D' ? 'dosen.' : 'admin.';
+                    $actionUrl = route($peran . 'data_detail_kelas.destroy', ['id_kelas' => $kelas->id_kelas, 'nim'=> $baris->nim]);
+
+                    $btn = '<form action="' . $actionUrl.'" method="POST" class="d-inline" onsubmit="return confirm(\'Yakin ingin menghapus data ini?\')">';
+                    $btn .= csrf_field();
+                    $btn .= method_field('DELETE');
+                    $btn .= '<button type="submit" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i> Hapus
+                    </button>';
+                    $btn .= '</form>';
+
+                    return $btn;
+                })
+                ->rawColumns(['aksi'])
+                ->make(true);
+        }
+        $detail_kelas =DetailKelasModel::where('id_kelas', $id_kelas)->get();
         $daftar_mahasiswa = $detail_kelas->pluck('nim')->toArray();
         $data_mahasiswa = MahasiswaModel::whereNotIn('nim', $daftar_mahasiswa)->orderBy('nim', 'asc')->get();
-
         $peran = $user->peran === 'D' ? 'dosen.data_detail_kelas.index' : 'admin.data_detail_kelas.index';
 
         return view($peran, compact('kelas', 'detail_kelas', 'data_mahasiswa', 'id_kelas'));
